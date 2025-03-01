@@ -28,3 +28,4 @@ go.work
 *.terraform
 *.terraform.lock.hcl
 *flyway.conf
+bin/

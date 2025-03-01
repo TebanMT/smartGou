@@ -1,0 +1,11 @@
+This is a info file for the controller directory.
+
+For the init of the project, we are using lambdas to handle the requests.
+
+Thats why this directory is empty. 
+
+The controllers are implemented in the lambda functions and put in the lambda directory.
+
+The idea of this directory is to have a place to migrate the controllers to a different technology, for example, a rest api.
+
+In that manner if the project grows, we can migrate to a rest api and containerize the application without affecting the business logic.
