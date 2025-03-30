@@ -10,6 +10,7 @@ package app
 
 import (
 	"context"
+	"strings"
 
 	"github.com/TebanMT/smartGou/src/common"
 	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
@@ -29,6 +30,7 @@ func NewSignUpByEmailUseCase(securityRepository securityDomain.EmailAuthProvider
 
 func (u *SignUpByEmailUseCase) SignUpByEmail(ctx context.Context, email string, password string) (string, error) {
 
+	plainPassword := password
 	userEntity := userDomain.User{
 		Email:         &email,
 		Password:      &password,
@@ -70,7 +72,8 @@ func (u *SignUpByEmailUseCase) SignUpByEmail(ctx context.Context, email string, 
 		if err != nil {
 			return "", err
 		}
-		err := u.securityRepository.RegisterWithEmail(ctx, *userEntity.Email, *userEntity.Password, userEntity.UserID)
+		email := strings.ToLower(*userEntity.Email)
+		err := u.securityRepository.RegisterWithEmail(ctx, email, plainPassword, userEntity.UserID)
 		if err != nil {
 			return "", err
 		}

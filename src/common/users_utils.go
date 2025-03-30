@@ -1,6 +1,8 @@
 package common
 
 import (
+	"strings"
+
 	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
 )
@@ -50,16 +52,18 @@ func CheckUserExistenceByPhone(tx commonDomain.Transaction, userRepository userD
 }
 
 func CheckUserExistenceByEmail(tx commonDomain.Transaction, userRepository userDomain.UserRepository, user *userDomain.User) (*userDomain.User, error) {
+	email := strings.ToLower(*user.Email)
 	checks := []CheckType{
-		{userRepository.ExistsUserByEmail, user.Email, userDomain.ErrEmailAlreadyExists},
+		{userRepository.ExistsUserByEmail, &email, userDomain.ErrEmailAlreadyExists},
 	}
 	return checkUserExistence(tx, checks)
 }
 
 func CheckUserExistenceByPhoneAndEmail(tx commonDomain.Transaction, userRepository userDomain.UserRepository, user *userDomain.User) (*userDomain.User, error) {
+	email := strings.ToLower(*user.Email)
 	checks := []CheckType{
 		{userRepository.ExistsUserByPhone, user.Phone, userDomain.ErrPhoneAlreadyExists},
-		{userRepository.ExistsUserByEmail, user.Email, userDomain.ErrEmailAlreadyExists},
+		{userRepository.ExistsUserByEmail, &email, userDomain.ErrEmailAlreadyExists},
 	}
 	return checkUserExistence(tx, checks)
 }

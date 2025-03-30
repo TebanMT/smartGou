@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/TebanMT/smartGou/src/common"
 	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
@@ -41,7 +42,7 @@ func (r *UserRepository) ExistsUserByEmail(tx commonDomain.Transaction, email st
 	var user domain.User
 	err := tx.Execute(func(t commonDomain.Transaction) error {
 		gormTx := t.(*common.GormTransaction)
-		return gormTx.Tx.Model(&domain.User{}).Where("email = ?", email).First(&user).Error
+		return gormTx.Tx.Model(&domain.User{}).Where("LOWER(email) = ?", strings.ToLower(email)).First(&user).Error
 	})
 	if err != nil && err == gorm.ErrRecordNotFound {
 		return nil, nil

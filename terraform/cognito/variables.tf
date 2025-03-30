@@ -72,6 +72,5 @@ variable "email_configuration" {
     message = "Hello from SmartGou, your verification code is {####}"
     subject = "SmartGou Verification Code"
   }
-
 }
 

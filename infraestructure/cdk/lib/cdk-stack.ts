@@ -13,7 +13,9 @@ export class SmartGouStack extends cdk.Stack {
   public readonly verifyOTPByPhoneFunction: lambda.Function;
   public readonly signUpByEmailFunction: lambda.Function;
   public readonly confirmOtpByEmailFunction: lambda.Function;
-  
+  public readonly loginWithEmailFunction: lambda.Function;
+
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
     const envVariables = env(['COGNITO_USER_POOL_ID', 'COGNITO_USER_POOL_CLIENT_ID', 'COGNITO_REGION', 'DATABASE_URL']);
@@ -64,6 +66,16 @@ export class SmartGouStack extends cdk.Stack {
       role: this.cognitoRole.role,
     });
 
+    this.loginWithEmailFunction = new lambda.Function(this, 'loginWithEmailLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'loginWithEmailLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/login_with_email/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
+
     // End Auth functions
 
     const httpApi = new HttpApi(this, 'SmartGouApiRest', {
@@ -76,6 +88,7 @@ export class SmartGouStack extends cdk.Stack {
         allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key'],
       }
     });
+
 
     // Auth routes
     httpApi.addRoutes({
@@ -100,6 +113,12 @@ export class SmartGouStack extends cdk.Stack {
       path: '/auth',
       methods: [HttpMethod.PATCH],
       integration: new HttpLambdaIntegration('ConfirmOtpByEmailIntegration', this.confirmOtpByEmailFunction),
+    });
+
+    httpApi.addRoutes({
+      path: '/auth/sessions',
+      methods: [HttpMethod.POST],
+      integration: new HttpLambdaIntegration('LoginWithEmailIntegration', this.loginWithEmailFunction),
     });
     // End Auth routes
 

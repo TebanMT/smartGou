@@ -2,6 +2,7 @@ package cognito
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 
@@ -197,13 +198,17 @@ func (s *CognitoService) LoginWithEmail(ctx context.Context, email string, passw
 		AuthFlow: types.AuthFlowTypeUserPasswordAuth,
 		ClientId: aws.String(s.userPoolClientId),
 		AuthParameters: map[string]string{
-			"EMAIL":    email,
+			"USERNAME": email,
 			"PASSWORD": password,
 		},
 	})
 	if err != nil {
+		fmt.Println("Error: ", err)
 		if strings.Contains(err.Error(), "UserNotFoundException") {
-			return nil, securityDomain.ErrUserNotFoundException
+			return nil, securityDomain.ErrInvalidCredentials
+		}
+		if strings.Contains(err.Error(), "NotAuthorizedException: Password attempts exceeded") {
+			return nil, securityDomain.ErrMaxAttemptsReached
 		}
 		if strings.Contains(err.Error(), "NotAuthorizedException") {
 			return nil, securityDomain.ErrInvalidCredentials
@@ -214,7 +219,12 @@ func (s *CognitoService) LoginWithEmail(ctx context.Context, email string, passw
 		return nil, err
 	}
 
-	tokenEntity := securityDomain.NewTokenEntity(*result.AuthenticationResult.AccessToken, *result.AuthenticationResult.RefreshToken, *result.AuthenticationResult.IdToken, 0)
+	tokenEntity := securityDomain.NewTokenEntity(
+		*result.AuthenticationResult.AccessToken,
+		*result.AuthenticationResult.RefreshToken,
+		*result.AuthenticationResult.IdToken,
+		int(result.AuthenticationResult.ExpiresIn),
+	)
 	return tokenEntity, nil
 
 }

@@ -109,7 +109,6 @@ resource "aws_cognito_user_pool" "smartGo" {
     email_subject = var.email_configuration.subject
   }
 
-
   # authentication methods
   auto_verified_attributes = var.auto_verified_attributes
   alias_attributes = var.alias_attributes
