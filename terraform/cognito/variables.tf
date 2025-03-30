@@ -15,7 +15,7 @@ variable "alias_attributes" {
 
 variable "auto_verified_attributes" {
   description = "Auto verified attributes. The users must verify their email and phone number to sign in to the application."
-  default     = ["email"]
+  default     = ["email", "phone_number"]
 }
 
 variable "password_policy" {
@@ -39,7 +39,16 @@ variable "mfa_configuration" {
 
 variable "explicit_auth_flows" {
   description = "Explicit auth flows."
-  default     = ["ALLOW_USER_SRP_AUTH", "ALLOW_USER_PASSWORD_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
+  default     = ["ALLOW_USER_SRP_AUTH", "ALLOW_USER_PASSWORD_AUTH", "ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_CUSTOM_AUTH"]
+}
+
+variable "custom_auth_lambda_functions" {
+  description = "Custom auth lambda functions."
+  default     = {
+    define_auth_challenge = "define_auth_challenge"
+    create_auth_challenge = "create_auth_challenge"
+    verify_auth_challenge_response = "verify_auth_challenge_response"
+  }
 }
 
 variable "generate_secret" {
@@ -47,4 +56,22 @@ variable "generate_secret" {
   default     = false
 }
 
+variable "sms_configuration" {
+  description = "SMS configuration."
+  default     = {
+    external_id = "1234567890"
+    sns_region = "us-east-1"
+    message = "Hello from SmartGou, your verification code is {####}"
+  }
+}
+
+variable "email_configuration" {
+  description = "Email configuration."
+  default     = {
+    default_email_option = "CONFIRM_WITH_CODE"
+    message = "Hello from SmartGou, your verification code is {####}"
+    subject = "SmartGou Verification Code"
+  }
+
+}
 

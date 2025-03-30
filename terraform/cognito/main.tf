@@ -1,5 +1,114 @@
+# Role for cognito
+resource "aws_iam_role" "cognito_role" {
+  name = "cognito-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = ["cognito-idp.amazonaws.com", "lambda.amazonaws.com"]
+        }
+      },
+    ]
+  })
+}
+
+# Policy for cognito
+resource "aws_iam_policy" "cognito_policy" {
+  name = "cognito-policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "cognito-idp:*",
+          "cognito-identity:*",
+          "cognito-sync:*",
+          "cognito-auth:*",
+          "cognito-identity:*",
+          "cognito-auth:*",
+          "cognito-sync:*",
+          "cognito-idp:*",
+          "cognito-identity:*",
+          "cognito-sync:*",
+          "cognito-auth:*",
+          "sns:*",
+          "s3:*",
+          "lambda:*",
+          "apigateway:*",
+          "cloudwatch:*",
+          "logs:*",
+        ]
+        Effect = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Attach policy to role
+resource "aws_iam_role_policy_attachment" "cognito_policy_attachment" {
+  role = aws_iam_role.cognito_role.name
+  policy_arn = aws_iam_policy.cognito_policy.arn
+}
+
+resource "aws_lambda_function" "custom_auth_lambda_functions" {
+  for_each = var.custom_auth_lambda_functions
+  function_name = each.value
+  role = aws_iam_role.cognito_role.arn
+  handler = "bootstrap"
+  runtime = "provided.al2"
+  filename = "${path.module}/../../bin/custom_auth/${each.value}/function.zip"
+  source_code_hash = filebase64sha256("${path.module}/../../bin/custom_auth/${each.value}/function.zip")
+}
+
 resource "aws_cognito_user_pool" "smartGo" {
   name = var.cognito_user_pool_name
+
+  
+  schema {
+    name = "external_id"
+    attribute_data_type = "String"
+    mutable = true
+    required = false
+  }
+
+  schema {
+    name = "username"
+    attribute_data_type = "String"
+    mutable = true
+    required = false
+  }
+
+  lifecycle {
+    ignore_changes = [
+      schema
+    ]
+  }
+
+  lambda_config {
+    define_auth_challenge = aws_lambda_function.custom_auth_lambda_functions["define_auth_challenge"].arn
+    create_auth_challenge = aws_lambda_function.custom_auth_lambda_functions["create_auth_challenge"].arn
+    verify_auth_challenge_response = aws_lambda_function.custom_auth_lambda_functions["verify_auth_challenge_response"].arn
+  }
+
+  sms_configuration {
+    external_id = var.sms_configuration.external_id
+    sns_caller_arn = aws_iam_role.cognito_role.arn
+    sns_region = var.sms_configuration.sns_region
+  }
+
+  verification_message_template {
+    sms_message = var.sms_configuration.message
+    default_email_option = var.email_configuration.default_email_option
+    email_message = var.email_configuration.message
+    email_subject = var.email_configuration.subject
+  }
+
 
   # authentication methods
   auto_verified_attributes = var.auto_verified_attributes
@@ -21,8 +130,17 @@ resource "aws_cognito_user_pool" "smartGo" {
     enabled = var.mfa_configuration.software_token_mfa
   }
 
-  
 }
+
+resource "aws_lambda_permission" "custom_auth_lambda_permissions" {
+  statement_id = "AllowExecutionFromCognito"
+  action = "lambda:InvokeFunction"
+  for_each = var.custom_auth_lambda_functions
+  function_name = aws_lambda_function.custom_auth_lambda_functions[each.value].arn
+  principal = "cognito-idp.amazonaws.com"
+  source_arn = aws_cognito_user_pool.smartGo.arn
+}
+
 
 resource "aws_cognito_user_pool_client" "smartGo" {
   name = var.cognito_user_pool_client_name

@@ -18,8 +18,8 @@ var (
 func InitConnection() *gorm.DB {
 	once.Do(func() {
 		var err error
-		dsn := os.Getenv("DATABASE_URL")
-		instance, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		dns := os.Getenv("DATABASE_URL")
+		instance, err = gorm.Open(postgres.Open(dns), &gorm.Config{})
 		if err != nil {
 			log.Fatalf("ERROR INIT CONNECTION: %v", err)
 		}

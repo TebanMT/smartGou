@@ -1,5 +1,7 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/cdk.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/cdk_aws.ts",
+  "rootDir": "./bin",
+  "profile": "personal",
   "watch": {
     "include": [
       "**"
