@@ -12,6 +12,7 @@ build-all-lambdas:
 	make build-lambda-function MODULE_NAME=security FUNC_NAME=sign_up_by_email
 	make build-lambda-function MODULE_NAME=security FUNC_NAME=confirm_otp_by_email
 	make build-lambda-function MODULE_NAME=security FUNC_NAME=login_with_email
+	make build-lambda-function MODULE_NAME=users FUNC_NAME=compleate_onbording
 
 build-custom-auth:
 	powershell -Command "New-Item -ItemType Directory -Path '$(ROOT_DIR)/bin/custom_auth/define_auth_challenge' -Force" && \

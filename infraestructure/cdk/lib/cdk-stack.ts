@@ -8,13 +8,14 @@ import { Roles } from './roles';
 
 export class SmartGouStack extends cdk.Stack {
   public readonly cognitoRole: Roles;
-  // lambda functions
+  // lambda functions for security module
   public readonly requestSingUpFunctionByPhone: lambda.Function;
   public readonly verifyOTPByPhoneFunction: lambda.Function;
   public readonly signUpByEmailFunction: lambda.Function;
   public readonly confirmOtpByEmailFunction: lambda.Function;
   public readonly loginWithEmailFunction: lambda.Function;
-
+  // lambda functions for users module
+  public readonly completeOnboardingFunction: lambda.Function;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -78,6 +79,18 @@ export class SmartGouStack extends cdk.Stack {
 
     // End Auth functions
 
+    // Users functions
+    this.completeOnboardingFunction = new lambda.Function(this, 'completeOnboardingLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'completeOnboardingLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/compleate_onbording/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
+    // End Users functions
+
     const httpApi = new HttpApi(this, 'SmartGouApiRest', {
       apiName: 'SmartGou API REST',
       description: 'This API serves enpoints to be consume by SmartGou app.',
@@ -121,6 +134,14 @@ export class SmartGouStack extends cdk.Stack {
       integration: new HttpLambdaIntegration('LoginWithEmailIntegration', this.loginWithEmailFunction),
     });
     // End Auth routes
+
+    // Users routes
+    httpApi.addRoutes({
+      path: '/users/{id-user}/onboarding',
+      methods: [HttpMethod.PATCH],
+      integration: new HttpLambdaIntegration('CompleteOnboardingIntegration', this.completeOnboardingFunction),
+    });
+    // End Users routes
 
 
     new cdk.CfnOutput(this, 'HttpApiUrl', {

@@ -72,10 +72,10 @@ func (r *UserRepository) ExistsUserByPhone(tx commonDomain.Transaction, phone st
 	return &user, nil
 }
 
-func (r *UserRepository) DeleteUser(tx commonDomain.Transaction, userID int) error {
+func (r *UserRepository) DeleteUser(tx commonDomain.Transaction, userID uuid.UUID) error {
 	return tx.Execute(func(t commonDomain.Transaction) error {
 		gormTx := t.(*common.GormTransaction)
-		return gormTx.Tx.Delete(&domain.User{}, "id = ?", userID).Error
+		return gormTx.Tx.Delete(&domain.User{}, "user_id = ?", userID).Error
 	})
 }
 
@@ -92,10 +92,10 @@ func (r *UserRepository) UpdateUser(tx commonDomain.Transaction, user *domain.Us
 	return user, nil
 }
 
-func (r *UserRepository) CompleteOnboarding(tx commonDomain.Transaction, userID int) error {
+func (r *UserRepository) CompleteOnboarding(tx commonDomain.Transaction, userID uuid.UUID) error {
 	return tx.Execute(func(t commonDomain.Transaction) error {
 		gormTx := t.(*common.GormTransaction)
-		return gormTx.Tx.Model(&domain.User{}).Where("id = ?", userID).Update("is_onboarding_completed", true).Error
+		return gormTx.Tx.Model(&domain.User{}).Where("user_id = ?", userID).Update("is_onboarding_completed", true).Error
 	})
 }
 

@@ -59,6 +59,10 @@ type TokenManager interface {
 		Logout the user
 	*/
 	Logout(ctx context.Context, accessToken string) (bool, error)
+	/*
+		Parse the token and validate it
+	*/
+	ParseTokenAndValidate(ctx context.Context, token string) (*TokenClaims, error)
 }
 
 type PhoneAuthProvider interface {

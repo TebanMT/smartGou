@@ -4,20 +4,31 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strings"
+	"sync"
+	"time"
 
+	"github.com/MicahParks/keyfunc"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+)
+
+var (
+	jwks     *keyfunc.JWKS
+	jwksOnce sync.Once
 )
 
 type CognitoService struct {
 	client           *cognitoidentityprovider.Client
 	userPoolId       string
 	userPoolClientId string
+	region           string
 }
 
 func NewCognitoService(userPoolId string, userPoolClientId string) (*CognitoService, error) {
@@ -29,7 +40,7 @@ func NewCognitoService(userPoolId string, userPoolClientId string) (*CognitoServ
 
 	client := cognitoidentityprovider.NewFromConfig(cfg)
 
-	return &CognitoService{client: client, userPoolId: userPoolId, userPoolClientId: userPoolClientId}, nil
+	return &CognitoService{client: client, userPoolId: userPoolId, userPoolClientId: userPoolClientId, region: os.Getenv("AWS_REGION")}, nil
 }
 
 func (s *CognitoService) SendOTPToPhone(ctx context.Context, userID uuid.UUID) (*securityDomain.LoginChallengeByPhone, error) {
@@ -270,288 +281,62 @@ func (s *CognitoService) Logout(ctx context.Context, accessToken string) (bool, 
 
 }
 
-/*
-func (s *CognitoService) RequestSignUp(ctx context.Context, phoneNumber string, userID uuid.UUID) (string, error) {
+func (s *CognitoService) ParseTokenAndValidate(ctx context.Context, token string) (*securityDomain.TokenClaims, error) {
 
-	// Create a new user in Cognito without password
-	input := &cognitoidentityprovider.AdminCreateUserInput{
-		Username:   aws.String(userID.String()),
-		UserPoolId: aws.String(s.userPoolId),
-		DesiredDeliveryMediums: []types.DeliveryMediumType{
-			types.DeliveryMediumTypeSms,
-		},
-		MessageAction: types.MessageActionTypeSuppress,
-		UserAttributes: []types.AttributeType{
-			{
-				Name:  aws.String("phone_number"),
-				Value: aws.String(phoneNumber),
-			},
-		},
+	type TokenClaims struct {
+		Sub      string `json:"sub"`
+		Username string `json:"username"`
+		Exp      int64  `json:"exp"`
+		Iss      string `json:"iss"`
+		Aud      string `json:"aud"`
+		Iat      int64  `json:"iat"`
+		jwt.RegisteredClaims
 	}
-
-	_, err := s.client.AdminCreateUser(context.TODO(), input)
+	jwks, err := s.getJWKS()
 	if err != nil {
-		if !strings.Contains(err.Error(), "UsernameExistsException") {
-			return "", err
-		}
-	}
-
-	// Send a code to the user's phone number
-	result, err := s.client.InitiateAuth(context.TODO(), &cognitoidentityprovider.InitiateAuthInput{
-		AuthFlow: types.AuthFlowTypeCustomAuth,
-		ClientId: aws.String(s.userPoolClientId),
-		AuthParameters: map[string]string{
-			"USERNAME": userID.String(),
-		},
-	})
-	if err != nil {
-		return "", err
-	}
-
-	session := *result.Session
-
-	return session, nil
-
-}
-
-func (s *CognitoService) VerifyRequestSignUp(ctx context.Context, code string, session string, userID uuid.UUID) (*securityDomain.TokenEntity, error) {
-	result, err := s.client.RespondToAuthChallenge(context.TODO(), &cognitoidentityprovider.RespondToAuthChallengeInput{
-		ChallengeName: types.ChallengeNameTypeCustomChallenge,
-		ChallengeResponses: map[string]string{
-			"USERNAME": userID.String(),
-			"ANSWER":   code,
-		},
-		ClientId: aws.String(s.userPoolClientId),
-		Session:  aws.String(session),
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "NotAuthorizedException: Invalid session for the user.") {
-			return nil, securityDomain.ErrInvalidSession
-		}
-		if strings.Contains(err.Error(), "UserNotFoundException") {
-			return nil, securityDomain.ErrUserNotFoundException
-		}
+		fmt.Println("Error getting JWKS: ", err)
 		return nil, err
 	}
-	if result.AuthenticationResult == nil {
-		return nil, securityDomain.ErrInvalidOTP
+	parsedToken, err := jwt.ParseWithClaims(token, &TokenClaims{}, jwks.Keyfunc)
+
+	if err != nil {
+		fmt.Println("Error parsing token: ", err)
+		return nil, securityDomain.ErrInvalidToken
 	}
 
-	s.client.AdminUpdateUserAttributes(ctx, &cognitoidentityprovider.AdminUpdateUserAttributesInput{
-		UserPoolId: aws.String(s.userPoolId),
-		Username:   aws.String(userID.String()),
-		UserAttributes: []types.AttributeType{
-			{
-				Name:  aws.String("phone_number_verified"),
-				Value: aws.String("true"),
-			},
-		},
+	claims, ok := parsedToken.Claims.(*TokenClaims)
+	if !ok {
+		return nil, securityDomain.ErrInvalidToken
+	}
+
+	if !parsedToken.Valid {
+		return nil, securityDomain.ErrInvalidToken
+	}
+
+	if claims.Exp < time.Now().Unix() {
+		return nil, securityDomain.ErrTokenExpired
+	}
+	fmt.Println("Token kid:", parsedToken.Header["kid"])
+
+	return securityDomain.NewTokenClaims(
+		claims.Sub,
+		claims.Username,
+		claims.Exp,
+		claims.Iss,
+		claims.Aud,
+		claims.Iat,
+	), nil
+}
+
+func (s *CognitoService) getJWKS() (*keyfunc.JWKS, error) {
+	var err error
+	jwksOnce.Do(func() {
+		jwksURL := fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s/.well-known/jwks.json", s.region, s.userPoolId)
+		fmt.Println("jwksURL: ", jwksURL)
+		jwks, err = keyfunc.Get(jwksURL, keyfunc.Options{
+			RefreshInterval:   time.Hour,
+			RefreshUnknownKID: true,
+		})
 	})
-
-	tokenEntity := securityDomain.NewTokenEntity(
-		*result.AuthenticationResult.AccessToken,
-		*result.AuthenticationResult.RefreshToken,
-		*result.AuthenticationResult.IdToken,
-		int(result.AuthenticationResult.ExpiresIn),
-	)
-
-	return tokenEntity, nil
+	return jwks, err
 }
-
-func (s *CognitoService) CompleteSignUp(ctx context.Context, userID uuid.UUID, email string, password string, username string) error {
-	_, err := s.client.AdminUpdateUserAttributes(context.TODO(), &cognitoidentityprovider.AdminUpdateUserAttributesInput{
-		Username:   aws.String(userID.String()),
-		UserPoolId: aws.String(s.userPoolId),
-		UserAttributes: []types.AttributeType{
-			{
-				Name:  aws.String("email"),
-				Value: aws.String(email),
-			},
-			{
-				Name:  aws.String("email_verified"),
-				Value: aws.String("true"),
-			},
-			{
-				Name:  aws.String("custom:external_id"),
-				Value: aws.String(userID.String()),
-			},
-			{
-				Name:  aws.String("custom:username"),
-				Value: aws.String(username),
-			},
-		},
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "UsernameExistsException") {
-			return securityDomain.ErrUserAlreadyExists
-		}
-		return err
-	}
-	_, err = s.client.AdminSetUserPassword(context.TODO(), &cognitoidentityprovider.AdminSetUserPasswordInput{
-		Username:   aws.String(userID.String()),
-		UserPoolId: aws.String(s.userPoolId),
-		Password:   aws.String(password),
-		Permanent:  true,
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-
-func (s *CognitoService) SendOtp(ctx context.Context, phoneNumber string) (string, error) {
-	var password string
-	randomUsername := uuid.New().String()
-	lowerCharSet := "abcdedfghijklmnopqrst"
-	upperCharSet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	specialCharSet := "!@#$%&*"
-	numberSet := "0123456789"
-	for i := 0; i < 5; i++ {
-		randomLowerChar := rand.Intn(len(lowerCharSet))
-		randomUpperChar := rand.Intn(len(upperCharSet))
-		randomSpecialChar := rand.Intn(len(specialCharSet))
-		randomNumber := rand.Intn(len(numberSet))
-		password += string(lowerCharSet[randomLowerChar])
-		password += string(upperCharSet[randomUpperChar])
-		password += string(specialCharSet[randomSpecialChar])
-		password += string(numberSet[randomNumber])
-	}
-	username := "NoneUserName-" + randomUsername
-	input := &cognitoidentityprovider.SignUpInput{
-		Username: aws.String(username),
-		ClientId: aws.String(s.userPoolClientId),
-		Password: aws.String(password),
-		UserAttributes: []types.AttributeType{
-			{
-				Name:  aws.String("phone_number"),
-				Value: aws.String(phoneNumber),
-			},
-		},
-	}
-
-	_, err := s.client.SignUp(context.TODO(), input)
-	if err != nil {
-		log.Fatal("Error signing up user in cognito: ", err)
-		return "", fmt.Errorf("error signing up user in cognito: %v", err)
-	}
-
-	return username, nil
-}
-
-func (s *CognitoService) SignUpUser(ctx context.Context, username string, email string, phoneNumber string, password string) error {
-	input := &cognitoidentityprovider.SignUpInput{
-		ClientId: aws.String(s.userPoolClientId),
-		Username: aws.String(username),
-		Password: aws.String(password),
-		UserAttributes: []types.AttributeType{
-			{Name: aws.String("email"), Value: aws.String(email)},
-			{Name: aws.String("phone_number"), Value: aws.String(phoneNumber)},
-		},
-	}
-
-	_, err := s.client.SignUp(context.TODO(), input)
-	if err != nil {
-		if strings.Contains(err.Error(), "UsernameExistsException") {
-			return securityDomain.ErrUserAlreadyExists
-		}
-		return err
-	}
-
-	return nil
-}
-
-func (s *CognitoService) ConfirmOtp(ctx context.Context, username string, code string) error {
-	_, err := s.client.ConfirmSignUp(context.TODO(), &cognitoidentityprovider.ConfirmSignUpInput{
-		Username:         aws.String(username),
-		ClientId:         aws.String(s.userPoolClientId),
-		ConfirmationCode: aws.String(code),
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "UserNotFoundException") {
-			return securityDomain.ErrUserNotFoundException
-		}
-		if strings.Contains(err.Error(), "CodeMismatchException") {
-			return securityDomain.ErrInvalidOTP
-		}
-		if strings.Contains(err.Error(), "NotAuthorizedException") && strings.Contains(err.Error(), "CONFIRMED") {
-			return securityDomain.ErrUserAlreadyConfirmed
-		}
-		if strings.Contains(err.Error(), "UsernameExistsException") {
-			return securityDomain.ErrUserAlreadyExists
-		}
-		return err
-	}
-
-	return nil
-}
-
-func (s *CognitoService) LoginWithEmail(ctx context.Context, email string, password string) (*securityDomain.TokenEntity, error) {
-	result, err := s.client.InitiateAuth(context.TODO(), &cognitoidentityprovider.InitiateAuthInput{
-		AuthFlow: types.AuthFlowTypeUserPasswordAuth,
-		ClientId: aws.String(s.userPoolClientId),
-		AuthParameters: map[string]string{
-			"EMAIL":    email,
-			"PASSWORD": password,
-		},
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "UserNotFoundException") {
-			return nil, securityDomain.ErrUserNotFoundException
-		}
-		if strings.Contains(err.Error(), "UserNotConfirmedException") {
-			return nil, securityDomain.ErrUserNotConfirmed
-		}
-		if strings.Contains(err.Error(), "NotAuthorizedException") {
-			return nil, securityDomain.ErrInvalidCredentials
-		}
-		if strings.Contains(err.Error(), "UsernameExistsException") {
-			return nil, securityDomain.ErrUserAlreadyExists
-		}
-		return nil, err
-	}
-
-	tokenEntity := securityDomain.NewTokenEntity(*result.AuthenticationResult.AccessToken, *result.AuthenticationResult.RefreshToken, *result.AuthenticationResult.IdToken, 0)
-	return tokenEntity, nil
-}
-
-func (s *CognitoService) RefreshToken(ctx context.Context, refreshToken string) (*securityDomain.TokenEntity, error) {
-	result, err := s.client.InitiateAuth(context.TODO(), &cognitoidentityprovider.InitiateAuthInput{
-		AuthFlow: types.AuthFlowTypeRefreshTokenAuth,
-		ClientId: aws.String(s.userPoolClientId),
-		AuthParameters: map[string]string{
-			"REFRESH_TOKEN": refreshToken,
-		},
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "NotAuthorizedException") {
-			return nil, securityDomain.ErrRefreshTokenExpired
-		}
-		if strings.Contains(err.Error(), "InvalidParameterException ") {
-			return nil, securityDomain.ErrInvalidRefreshToken
-		}
-		if strings.Contains(err.Error(), "UserNotFoundException") {
-			return nil, securityDomain.ErrUserNotFoundException
-		}
-		return nil, err
-	}
-
-	tokenEntity := securityDomain.NewTokenEntity(*result.AuthenticationResult.AccessToken, *result.AuthenticationResult.RefreshToken, *result.AuthenticationResult.IdToken, 0)
-	return tokenEntity, nil
-}
-
-func (s *CognitoService) Logout(ctx context.Context, accessToken string) (bool, error) {
-	_, err := s.client.GlobalSignOut(context.TODO(), &cognitoidentityprovider.GlobalSignOutInput{
-		AccessToken: aws.String(accessToken),
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "NotAuthorizedException") {
-			return false, securityDomain.ErrInvalidAccessToken
-		}
-		return false, err
-	}
-
-	return true, nil
-}
-*/

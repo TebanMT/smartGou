@@ -21,4 +21,9 @@ var (
 	ErrInvalidSession            = errors.New("invalid session")
 	ErrPhoneAlreadyVerified      = errors.New("phone already verified. Please login")
 	ErrMaxAttemptsReached        = errors.New("max attempts reached")
+
+	// Token errors
+	ErrTokenExpired = errors.New("token expired")
+	ErrInvalidToken = errors.New("invalid token")
+	ErrUnauthorized = errors.New("unauthorized")
 )

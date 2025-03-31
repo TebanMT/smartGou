@@ -5,6 +5,7 @@ import (
 
 	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
+	"github.com/google/uuid"
 )
 
 type CompleteOnboardingUseCase struct {
@@ -16,7 +17,7 @@ func NewCompleteOnboardingUseCase(userRepository userDomain.UserRepository, unit
 	return &CompleteOnboardingUseCase{userRepository: userRepository, unitOfWork: unitOfWork}
 }
 
-func (u *CompleteOnboardingUseCase) CompleteOnboarding(ctx context.Context, userID int) error {
+func (u *CompleteOnboardingUseCase) CompleteOnboarding(ctx context.Context, userID uuid.UUID) error {
 	tx, err := u.unitOfWork.Begin(ctx)
 	if err != nil {
 		return err
