@@ -1,0 +1,407 @@
+basePath: /v1
+definitions:
+  common.Response-any:
+    properties:
+      data: {}
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  common.Response-main_RequestSignUpResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.RequestSignUpResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  common.Response-main_SignUpByEmailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.SignUpByEmailResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  common.Response-main_TokenResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.TokenResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  common.Response-main_VerifyOTPByPhoneResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.VerifyOTPByPhoneResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  main.ConfirmOtpRequest:
+    properties:
+      code:
+        type: string
+      user_id:
+        type: string
+    required:
+    - code
+    - user_id
+    type: object
+  main.LoginWithEmailRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  main.RequestSignUpRequest:
+    properties:
+      dailing_code:
+        type: string
+      phone_number:
+        type: string
+    required:
+    - dailing_code
+    - phone_number
+    type: object
+  main.RequestSignUpResponse:
+    properties:
+      expires_at:
+        type: string
+      max_attempts:
+        type: integer
+      session:
+        type: string
+      user_id:
+        type: string
+    type: object
+  main.SignUpByEmailRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  main.SignUpByEmailResponse:
+    properties:
+      user_id:
+        type: string
+    type: object
+  main.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      id_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  main.VerifyOTPByPhoneRequest:
+    properties:
+      code:
+        type: string
+      session:
+        type: string
+      user_id:
+        type: string
+    required:
+    - code
+    - session
+    - user_id
+    type: object
+  main.VerifyOTPByPhoneResponse:
+    properties:
+      expires_at:
+        type: string
+      max_attempts:
+        type: integer
+      session:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: api.smartgo.com
+info:
+  contact: {}
+  description: SmartGo API
+  title: SmartGo API
+  version: "1.0"
+paths:
+  /auth:
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        This endpoint verifies a OTP by email.
+        Verify the code given a userID and a code. The code is the code that the user received in the email.
+        Also, the email will be verified as true in provider (cognito) and database.
+      parameters:
+      - description: Request body
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ConfirmOtpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Login with email and password
+      tags:
+      - security
+    post:
+      consumes:
+      - application/json
+      description: |-
+        This endpoint signs up a user by email and password.
+        The user will be created in the database and inderity provider (cognito) if it doesn't exist.
+        If the user exists, an error will be returned.
+        A mail will be sent to the user to verify the email.
+        If the user exists but the email is not verified, a new OTP will be sent to the user.
+      parameters:
+      - description: Request body
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.SignUpByEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-main_SignUpByEmailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Sign up by email and password
+      tags:
+      - security
+  /auth/otp:
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        This endpoint verifies a OTP by phone number.
+        If the OTP is valid, the user will be logged in and return the token entity.
+        If the OTP is invalid, the user will be logged in and return the login challenge entity.
+        The login challenge entity contains the session and the userID with which the user can try to verify the OTP again.
+      parameters:
+      - description: Request body
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.VerifyOTPByPhoneRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-main_VerifyOTPByPhoneResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Verify OTP from phone
+      tags:
+      - security
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Try to sign up or login by phone number.
+        The user will be created in the database and inderity provider (cognito) if it doesn't exist.
+        If the user exists, the code will be sent to the phone number.
+        The user will be created without password and return the session.
+        The session is specific context for the user to login in the cognito user pool. It is used to verify the user's phone number.
+        For others implementations, this session could be not needed.
+        The user ID (uuid type) is the user's ID in the database and also the username in the cognito user pool.
+      parameters:
+      - description: Request body
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.RequestSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-main_RequestSignUpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Request sign up / login by phone
+      tags:
+      - security
+  /auth/sessions:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Login with email
+        This use case is used to login a user with email and password.
+        The user will be logged in if the email and password are correct, otherwise an error will be returned.
+        The token is a JWT token that is used to authenticate the user.
+        The token is valid for 1 hour.
+      parameters:
+      - description: Request body
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.LoginWithEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-main_TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Login with email and password
+      tags:
+      - security
+  /users/{id-user}/onboarding:
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint completes the onboarding process for a user.
+      parameters:
+      - description: User ID formatted as UUID
+        in: path
+        name: id-user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      security:
+      - BearerAuth: []
+      summary: Complete onboarding
+      tags:
+      - users
+schemes:
+- https
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

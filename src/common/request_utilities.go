@@ -10,10 +10,40 @@ import (
 	"github.com/go-playground/validator"
 )
 
-type Response struct {
-	StatusCode int    `json:"status_code"`
-	Message    string `json:"message"`
-	Data       any    `json:"data"`
+var ERROR_CODES = map[int]string{
+	// 2xx
+	200: "OK",
+	201: "CREATED",
+	202: "ACCEPTED",
+	203: "NON_AUTHORITATIVE_INFORMATION",
+	204: "NO_CONTENT",
+	205: "RESET_CONTENT",
+	206: "PARTIAL_CONTENT",
+	// 4xx
+	400: "BAD_REQUEST",
+	401: "UNAUTHORIZED",
+	403: "FORBIDDEN",
+	404: "NOT_FOUND",
+	405: "METHOD_NOT_ALLOWED",
+	406: "NOT_ACCEPTABLE",
+	407: "PROXY_AUTHENTICATION_REQUIRED",
+	408: "REQUEST_TIMEOUT",
+	410: "GONE",
+	411: "LENGTH_REQUIRED",
+	412: "PRECONDITION_FAILED",
+	// 5xx
+	500: "INTERNAL_SERVER_ERROR",
+	501: "NOT_IMPLEMENTED",
+	502: "BAD_GATEWAY",
+	503: "SERVICE_UNAVAILABLE",
+	504: "GATEWAY_TIMEOUT",
+}
+
+type Response[T any] struct {
+	StatusCode int     `json:"status_code"`
+	Message    string  `json:"message"`
+	Data       T       `json:"data"`
+	Exception  *string `json:"exception" extensions:"x-nullable=true"`
 }
 
 var validate = validator.New()
@@ -50,11 +80,19 @@ func getCustomMessage(fe validator.FieldError) string {
 	}
 }
 
-func JsonResponse(statusCode int, message string, data any) (events.APIGatewayProxyResponse, error) {
-	response := Response{
+func JsonResponse[T any](statusCode int, message string, data T, exception string) (events.APIGatewayProxyResponse, error) {
+	var exceptionPtr *string
+	if exception != "" {
+		exceptionPtr = &exception
+	}
+	if message == "" {
+		message = ERROR_CODES[statusCode]
+	}
+	response := Response[T]{
 		StatusCode: statusCode,
 		Message:    message,
 		Data:       data,
+		Exception:  exceptionPtr,
 	}
 	responseBody, _ := json.Marshal(response)
 	return events.APIGatewayProxyResponse{

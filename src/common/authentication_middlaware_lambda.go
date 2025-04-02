@@ -14,11 +14,11 @@ func AuthenticationMiddleware(s securityDomain.TokenManager, next LambdaHandler)
 	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		token, err := extractToken(request)
 		if err != nil {
-			return JsonResponse(401, err.Error(), nil)
+			return JsonResponse[any](401, "", nil, err.Error())
 		}
 		claims, err := s.ParseTokenAndValidate(ctx, token)
 		if err != nil {
-			return JsonResponse(401, err.Error(), nil)
+			return JsonResponse[any](401, "", nil, err.Error())
 		}
 		request.RequestContext.Authorizer = map[string]interface{}{
 			"claims": claims,

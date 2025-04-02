@@ -36,17 +36,31 @@ func init() {
 	dbInstance = db.InitConnection()
 }
 
+// @Summary Login with email and password
+// @Description  This endpoint verifies a OTP by email.
+// @Description  Verify the code given a userID and a code. The code is the code that the user received in the email.
+// @Description  Also, the email will be verified as true in provider (cognito) and database.
+// @Tags security
+// @Accept  json
+// @Produce  json
+// @Param payload body ConfirmOtpRequest true "Request body"
+// @Success 200 {object} common.Response[any]
+// @Failure 400 {object} common.Response[any]
+// @Failure 404 {object} common.Response[any]
+// @Failure 409 {object} common.Response[any]
+// @Failure 500 {object} common.Response[any]
+// @Router /auth [patch]
 func confirmOtpLambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	var confirmOtpRequest ConfirmOtpRequest
 	err := json.Unmarshal([]byte(request.Body), &confirmOtpRequest)
 	if err != nil {
-		return common.JsonResponse(400, "Bad Request: "+err.Error(), nil)
+		return common.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	err = common.ValidateRequest(confirmOtpRequest)
 	if err != nil {
-		return common.JsonResponse(400, "Bad Request: "+err.Error(), nil)
+		return common.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	unitOfWork := common.NewUnitOfWork(dbInstance)
@@ -54,15 +68,15 @@ func confirmOtpLambdaHandler(ctx context.Context, request events.APIGatewayProxy
 	err = app.NewVerifyOTPByEmail(cognitoService, userRepository, unitOfWork).VerifyOTPByEmail(ctx, confirmOtpRequest.UserID, confirmOtpRequest.Code)
 	switch true {
 	case err == nil:
-		return common.JsonResponse(200, "OTP confirmed successfully", nil)
+		return common.JsonResponse[any](200, "", nil, "")
 	case errors.Is(err, securityDomain.ErrUserNotFoundException):
-		return common.JsonResponse(404, "User not found", nil)
+		return common.JsonResponse[any](404, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrInvalidOTP):
-		return common.JsonResponse(400, "Invalid OTP", nil)
+		return common.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrUserAlreadyConfirmed):
-		return common.JsonResponse(409, "User already confirmed", nil)
+		return common.JsonResponse[any](409, "", nil, err.Error())
 	default:
-		return common.JsonResponse(500, "Internal Server Error: "+err.Error(), nil)
+		return common.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 

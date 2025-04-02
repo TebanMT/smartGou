@@ -25,6 +25,10 @@ type SignUpByEmailRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type SignUpByEmailResponse struct {
+	UserID string `json:"user_id"`
+}
+
 var cognitoService *cognito.CognitoService
 var err error
 
@@ -42,31 +46,46 @@ func init() {
 	}
 }
 
+// @Summary Sign up by email and password
+// @Description  This endpoint signs up a user by email and password.
+// @Description  The user will be created in the database and inderity provider (cognito) if it doesn't exist.
+// @Description  If the user exists, an error will be returned.
+// @Description  A mail will be sent to the user to verify the email.
+// @Description  If the user exists but the email is not verified, a new OTP will be sent to the user.
+// @Tags security
+// @Accept  json
+// @Produce  json
+// @Param payload body SignUpByEmailRequest true "Request body"
+// @Success 200 {object} common.Response[SignUpByEmailResponse]
+// @Failure 400 {object} common.Response[any]
+// @Failure 409 {object} common.Response[any]
+// @Failure 500 {object} common.Response[any]
+// @Router /auth [post]
 func signUpByEmailLambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	var signUpByEmailRequest SignUpByEmailRequest
 	err := json.Unmarshal([]byte(request.Body), &signUpByEmailRequest)
 	if err != nil {
-		return common.JsonResponse(400, "Bad Request: "+err.Error(), nil)
+		return common.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	err = common.ValidateRequest(signUpByEmailRequest)
 	if err != nil {
-		return common.JsonResponse(400, "Bad Request: "+err.Error(), nil)
+		return common.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	userID, err := app.NewSignUpByEmailUseCase(cognitoService, userRepository, unitOfWork).SignUpByEmail(ctx, signUpByEmailRequest.Email, signUpByEmailRequest.Password)
 	switch {
 	case err == nil:
-		return common.JsonResponse(200, "User created successfully", map[string]string{"user_id": userID})
+		return common.JsonResponse(200, "", SignUpByEmailResponse{UserID: userID}, "")
 	case errors.Is(err, userDomain.ErrInvalidEmail),
 		errors.Is(err, userDomain.ErrInvalidPassword),
 		errors.Is(err, userDomain.ErrPasswordTooShort):
-		return common.JsonResponse(400, err.Error(), nil)
+		return common.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, userDomain.ErrEmailAlreadyExists):
-		return common.JsonResponse(409, err.Error(), nil)
+		return common.JsonResponse[any](409, "", nil, err.Error())
 	default:
-		return common.JsonResponse(500, "Internal Server Error: "+err.Error(), nil)
+		return common.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 
