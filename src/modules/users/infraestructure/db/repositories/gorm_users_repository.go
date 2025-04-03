@@ -7,6 +7,7 @@ import (
 	"github.com/TebanMT/smartGou/src/common"
 	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	"github.com/TebanMT/smartGou/src/modules/users/domain"
+	"github.com/TebanMT/smartGou/src/modules/users/infraestructure/db/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -111,4 +112,39 @@ func (r *UserRepository) VerifyEmail(tx commonDomain.Transaction, userID uuid.UU
 		gormTx := t.(*common.GormTransaction)
 		return gormTx.Tx.Model(&domain.User{}).Where("user_id = ?", userID).Update("verified_email", true).Error
 	})
+}
+
+func (r *UserRepository) GetUserByID(tx commonDomain.Transaction, userID uuid.UUID) (*domain.User, error) {
+	var user models.UserModel
+	err := tx.Execute(func(t commonDomain.Transaction) error {
+		gormTx := t.(*common.GormTransaction)
+		return gormTx.Tx.Model(&models.UserModel{}).Where("user_id = ?", userID).First(&user).Error
+	})
+	if err != nil {
+		fmt.Println("Error getting user by id", err)
+		return nil, err
+	}
+
+	if user.Id == 0 {
+		return nil, domain.ErrUserNotFound
+	}
+
+	userDomain := domain.User{
+		ID:                    user.Id,
+		UserID:                user.UserID,
+		Username:              user.Username,
+		Email:                 user.Email,
+		Phone:                 user.Phone,
+		IsOnboardingCompleted: user.IsOnboardingCompleted,
+		VerifiedPhone:         user.VerifiedPhone,
+		VerifiedEmail:         user.VerifiedEmail,
+		CreatedAt:             user.CreatedAt,
+		UpdatedAt:             user.UpdatedAt,
+		Name:                  user.Name,
+		LastName:              user.LastName,
+		SecondLastName:        user.SecondLastName,
+		DailingCode:           user.DailingCode,
+	}
+
+	return &userDomain, nil
 }

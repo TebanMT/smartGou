@@ -47,6 +47,18 @@ definitions:
       status_code:
         type: integer
     type: object
+  common.Response-main_UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.UserResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
   common.Response-main_VerifyOTPByPhoneResponse:
     properties:
       data:
@@ -122,6 +134,42 @@ definitions:
         type: string
       refresh_token:
         type: string
+    type: object
+  main.UserResponse:
+    properties:
+      created_at:
+        type: string
+      dailing_code:
+        type: string
+        x-nullable: "true"
+      email:
+        type: string
+        x-nullable: "true"
+      is_onboarding_completed:
+        type: boolean
+      last_name:
+        type: string
+        x-nullable: "true"
+      name:
+        type: string
+        x-nullable: "true"
+      phone:
+        type: string
+        x-nullable: "true"
+      second_last_name:
+        type: string
+        x-nullable: "true"
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+        x-nullable: "true"
+      verified_email:
+        type: boolean
+      verified_phone:
+        type: boolean
     type: object
   main.VerifyOTPByPhoneRequest:
     properties:
@@ -362,6 +410,45 @@ paths:
       summary: Login with email and password
       tags:
       - security
+  /users/{id-user}:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint gets the user profile for a user.
+      parameters:
+      - description: User ID formatted as UUID
+        in: path
+        name: id-user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-main_UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
   /users/{id-user}/onboarding:
     patch:
       consumes:

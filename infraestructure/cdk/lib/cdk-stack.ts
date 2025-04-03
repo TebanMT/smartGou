@@ -16,6 +16,7 @@ export class SmartGouStack extends cdk.Stack {
   public readonly loginWithEmailFunction: lambda.Function;
   // lambda functions for users module
   public readonly completeOnboardingFunction: lambda.Function;
+  public readonly getUserProfileFunction: lambda.Function;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -89,6 +90,16 @@ export class SmartGouStack extends cdk.Stack {
       environment: envVariables,
       role: this.cognitoRole.role,
     });
+
+    this.getUserProfileFunction = new lambda.Function(this, 'getUserProfileLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'getUserProfileLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/get_user_profile/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
     // End Users functions
 
     const httpApi = new HttpApi(this, 'SmartGouApiRest', {
@@ -140,6 +151,12 @@ export class SmartGouStack extends cdk.Stack {
       path: '/users/{id-user}/onboarding',
       methods: [HttpMethod.PATCH],
       integration: new HttpLambdaIntegration('CompleteOnboardingIntegration', this.completeOnboardingFunction),
+    });
+
+    httpApi.addRoutes({
+      path: '/users/{id-user}',
+      methods: [HttpMethod.GET],
+      integration: new HttpLambdaIntegration('GetUserProfileIntegration', this.getUserProfileFunction),
     });
     // End Users routes
 

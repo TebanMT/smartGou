@@ -16,4 +16,5 @@ var (
 	ErrPasswordRequired          = errors.New("password is required")
 	ErrPasswordTooShort          = errors.New("password must be at least 8 characters long")
 	ErrInvalidPassword           = errors.New("invalid password - the password must to have special characters, uppercase, lowercase, numbers and be between 8 and 50 characters")
+	ErrUserNotFound              = errors.New("user not found")
 )

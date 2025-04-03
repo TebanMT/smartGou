@@ -14,4 +14,5 @@ type UserRepository interface {
 	CompleteOnboarding(tx domain.Transaction, userID uuid.UUID) error
 	VerifyPhone(tx domain.Transaction, userID uuid.UUID) error
 	VerifyEmail(tx domain.Transaction, userID uuid.UUID) error
+	GetUserByID(tx domain.Transaction, userID uuid.UUID) (*User, error)
 }

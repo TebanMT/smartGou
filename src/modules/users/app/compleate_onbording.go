@@ -38,6 +38,7 @@ func (u *CompleteOnboardingUseCase) CompleteOnboarding(ctx context.Context, user
 	if err := u.unitOfWork.Commit(tx); err != nil {
 		return err
 	}
+	rollback = false
 
 	return nil
 }
