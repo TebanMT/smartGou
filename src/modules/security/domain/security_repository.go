@@ -65,6 +65,17 @@ type TokenManager interface {
 	ParseTokenAndValidate(ctx context.Context, token string) (*TokenClaims, error)
 }
 
+type PasswordManager interface {
+	/*
+		Password recovery
+	*/
+	PasswordRecovery(ctx context.Context, email string) (bool, error)
+	/*
+		Password reset
+	*/
+	PasswordReset(ctx context.Context, userID uuid.UUID, newPassword string, confirmationCode string) (bool, error)
+}
+
 type PhoneAuthProvider interface {
 	PhoneAuthenticator
 	IdentityRegister

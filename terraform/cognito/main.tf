@@ -94,6 +94,7 @@ resource "aws_cognito_user_pool" "smartGo" {
     define_auth_challenge = aws_lambda_function.custom_auth_lambda_functions["define_auth_challenge"].arn
     create_auth_challenge = aws_lambda_function.custom_auth_lambda_functions["create_auth_challenge"].arn
     verify_auth_challenge_response = aws_lambda_function.custom_auth_lambda_functions["verify_auth_challenge_response"].arn
+    custom_message = aws_lambda_function.custom_auth_lambda_functions["custom_email_messages"].arn
   }
 
   sms_configuration {
@@ -107,6 +108,20 @@ resource "aws_cognito_user_pool" "smartGo" {
     default_email_option = var.email_configuration.default_email_option
     email_message = var.email_configuration.message
     email_subject = var.email_configuration.subject
+  }
+
+  // account recovery setting
+  account_recovery_setting {
+    recovery_mechanism {
+      name = "verified_email"
+      priority = 1
+    }
+    recovery_mechanism {
+      name = "verified_phone_number"
+      priority = 2
+    }
+    
+
   }
 
   # authentication methods

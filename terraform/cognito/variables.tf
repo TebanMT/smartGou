@@ -48,6 +48,7 @@ variable "custom_auth_lambda_functions" {
     define_auth_challenge = "define_auth_challenge"
     create_auth_challenge = "create_auth_challenge"
     verify_auth_challenge_response = "verify_auth_challenge_response"
+    custom_email_messages = "custom_email_messages"
   }
 }
 
@@ -71,6 +72,8 @@ variable "email_configuration" {
     default_email_option = "CONFIRM_WITH_CODE"
     message = "Hello from SmartGou, your verification code is {####}"
     subject = "SmartGou Verification Code"
+    forgot_password_message = "Hello from SmartGou, your password reset code is {####}"
+    forgot_password_subject = "SmartGou Password Reset Code"
   }
 }
 

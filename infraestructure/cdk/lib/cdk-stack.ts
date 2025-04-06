@@ -16,6 +16,8 @@ export class SmartGouStack extends cdk.Stack {
   public readonly loginWithEmailFunction: lambda.Function;
   public readonly refreshTokenFunction: lambda.Function;
   public readonly logoutFunction: lambda.Function;
+  public readonly requestRecoveryPasswordFunction: lambda.Function;
+  public readonly resetPasswordFunction: lambda.Function;
   // lambda functions for users module
   public readonly completeOnboardingFunction: lambda.Function;
   public readonly getUserProfileFunction: lambda.Function;
@@ -100,6 +102,26 @@ export class SmartGouStack extends cdk.Stack {
       role: this.cognitoRole.role,
     });
 
+    this.requestRecoveryPasswordFunction = new lambda.Function(this, 'requestRecoveryPasswordLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'requestRecoveryPasswordLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/request_recovery_password/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
+
+    this.resetPasswordFunction = new lambda.Function(this, 'resetPasswordLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'resetPasswordLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/reset_password/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
+
     // End Auth functions
 
     // Users functions
@@ -178,6 +200,18 @@ export class SmartGouStack extends cdk.Stack {
       methods: [HttpMethod.DELETE],
       integration: new HttpLambdaIntegration('LogoutIntegration', this.logoutFunction),
     });
+
+    httpApi.addRoutes({
+      path: '/auth/recovery-password',
+      methods: [HttpMethod.POST],
+      integration: new HttpLambdaIntegration('RequestRecoveryPasswordIntegration', this.requestRecoveryPasswordFunction),
+    });
+
+    httpApi.addRoutes({
+      path: '/auth/recovery-password',
+      methods: [HttpMethod.PATCH],
+      integration: new HttpLambdaIntegration('ResetPasswordIntegration', this.resetPasswordFunction),
+    });
     // End Auth routes
 
     // Users routes
@@ -203,18 +237,3 @@ export class SmartGouStack extends cdk.Stack {
   }
 
 }
-
-
-
-/*
-Método REST	Endpoint	Método de la Interfaz
-POST /auth	Iniciar registro con phone	RequestSignUp
-POST /auth/otp	Verificar OTP de registro	VerifySignUpOTP
-PATCH /auth	Completar registro con email/password	CompleteSignUp
-POST /auth/sessions	Login con email o phone	LoginWithEmail, RequestPhoneLogin
-POST /auth/sessions/otp	Verificar OTP para login	VerifyPhoneLoginOTP
-PATCH /auth/sessions	Refresh token	RefreshTokens
-DELETE /auth/sessions	Logout	Logout
-POST /auth/recovery	Solicitar recuperación de contraseña	RequestPasswordRecovery
-PATCH /auth/recovery	Resetear contraseña	ResetPassword
-*/

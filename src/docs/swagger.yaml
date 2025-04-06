@@ -23,10 +23,34 @@ definitions:
       status_code:
         type: integer
     type: object
+  common.Response-main_RequestRecoveryPasswordResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.RequestRecoveryPasswordResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
   common.Response-main_RequestSignUpResponse:
     properties:
       data:
         $ref: '#/definitions/main.RequestSignUpResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  common.Response-main_ResetPasswordResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.ResetPasswordResponse'
       exception:
         type: string
         x-nullable: "true"
@@ -133,6 +157,18 @@ definitions:
       refresh_token:
         type: string
     type: object
+  main.RequestRecoveryPassword:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  main.RequestRecoveryPasswordResponse:
+    properties:
+      success:
+        type: boolean
+    type: object
   main.RequestSignUpRequest:
     properties:
       dailing_code:
@@ -153,6 +189,24 @@ definitions:
         type: string
       user_id:
         type: string
+    type: object
+  main.ResetPasswordRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - code
+    - email
+    - password
+    type: object
+  main.ResetPasswordResponse:
+    properties:
+      success:
+        type: boolean
     type: object
   main.SignUpByEmailRequest:
     properties:
@@ -410,6 +464,80 @@ paths:
           schema:
             $ref: '#/definitions/common.Response-any'
       summary: Request sign up / login by phone
+      tags:
+      - security
+  /auth/recovery-password:
+    patch:
+      consumes:
+      - application/json
+      description: Reset password. If the code, password and email are valid, the
+        password will be reset.
+      parameters:
+      - description: Reset password request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-main_ResetPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            type: with
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Reset password
+      tags:
+      - security
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Request password recovery. If the email is found, the user will receive an email with a code to reset the password.
+        In otherwise, the user will receive an error.
+      parameters:
+      - description: Request password recovery
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.RequestRecoveryPassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-main_RequestRecoveryPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Request password recovery
       tags:
       - security
   /auth/sessions:

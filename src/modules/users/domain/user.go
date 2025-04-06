@@ -162,3 +162,7 @@ func BuildUserValidatorEmailAndPasswordChain() UserValidator {
 		Next: &PasswordValidator{},
 	}
 }
+
+func BuildUserValidatorEmailChain() UserValidator {
+	return &EmailValidator{}
+}

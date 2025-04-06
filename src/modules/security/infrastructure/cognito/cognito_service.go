@@ -342,3 +342,41 @@ func (s *CognitoService) getJWKS() (*keyfunc.JWKS, error) {
 	})
 	return jwks, err
 }
+
+func (s *CognitoService) PasswordRecovery(ctx context.Context, email string) (bool, error) {
+	_, err := s.client.ForgotPassword(ctx, &cognitoidentityprovider.ForgotPasswordInput{
+		ClientId: aws.String(s.userPoolClientId),
+		Username: aws.String(email),
+	})
+	if err != nil {
+		fmt.Println("Error: ", err)
+		if strings.Contains(err.Error(), "UserNotFoundException") {
+			return false, securityDomain.ErrUserNotFoundException
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func (s *CognitoService) PasswordReset(ctx context.Context, userID uuid.UUID, newPassword string, confirmationCode string) (bool, error) {
+	_, err := s.client.ConfirmForgotPassword(ctx, &cognitoidentityprovider.ConfirmForgotPasswordInput{
+		ClientId:         aws.String(s.userPoolClientId),
+		Username:         aws.String(userID.String()),
+		Password:         aws.String(newPassword),
+		ConfirmationCode: aws.String(confirmationCode),
+	})
+	if err != nil {
+		fmt.Println("Error: ", err)
+		if strings.Contains(err.Error(), "CodeMismatchException") {
+			return false, securityDomain.ErrInvalidOTP
+		}
+		if strings.Contains(err.Error(), "UserNotFoundException") {
+			return false, securityDomain.ErrUserNotFoundException
+		}
+		if strings.Contains(err.Error(), "ExpiredCodeException") {
+			return false, securityDomain.ErrExpiredOTP
+		}
+		return false, err
+	}
+	return true, nil
+}
