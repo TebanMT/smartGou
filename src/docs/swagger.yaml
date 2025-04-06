@@ -87,6 +87,27 @@ definitions:
         type: string
       password:
         type: string
+    required:
+    - email
+    - password
+    type: object
+  main.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  main.RefreshTokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      id_token:
+        type: string
+      refresh_token:
+        type: string
     type: object
   main.RequestSignUpRequest:
     properties:
@@ -368,6 +389,43 @@ paths:
       tags:
       - security
   /auth/sessions:
+    patch:
+      consumes:
+      - application/json
+      description: Refresh access token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: refresh_token
+        required: true
+        schema:
+          $ref: '#/definitions/main.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.RefreshTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Refresh access token
+      tags:
+      - security
     post:
       consumes:
       - application/json

@@ -16,8 +16,8 @@ import (
 )
 
 type LoginWithEmailRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type TokenResponse struct {
@@ -64,7 +64,12 @@ func LoginWithEmailHandler(ctx context.Context, request events.APIGatewayProxyRe
 	token, err := loginWithEmail.LoginWithEmail(ctx, loginWithEmailRequest.Email, loginWithEmailRequest.Password)
 	switch true {
 	case err == nil:
-		return common.JsonResponse(200, "", token, "")
+		return common.JsonResponse(200, "", &TokenResponse{
+			AccessToken:  token.AccessToken,
+			RefreshToken: token.RefreshToken,
+			IdToken:      token.IdToken,
+			ExpiresIn:    token.ExpiresIn,
+		}, "")
 	case errors.Is(err, securityDomain.ErrUserNotFoundException):
 		return common.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrInvalidCredentials):

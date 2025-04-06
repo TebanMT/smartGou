@@ -249,8 +249,9 @@ func (s *CognitoService) RefreshToken(ctx context.Context, refreshToken string) 
 		},
 	})
 	if err != nil {
+		fmt.Println("Error: ", err)
 		if strings.Contains(err.Error(), "NotAuthorizedException") {
-			return nil, securityDomain.ErrRefreshTokenExpired
+			return nil, securityDomain.ErrInvalidRefreshToken
 		}
 		if strings.Contains(err.Error(), "InvalidParameterException ") {
 			return nil, securityDomain.ErrInvalidRefreshToken
@@ -261,7 +262,7 @@ func (s *CognitoService) RefreshToken(ctx context.Context, refreshToken string) 
 		return nil, err
 	}
 
-	tokenEntity := securityDomain.NewTokenEntity(*result.AuthenticationResult.AccessToken, *result.AuthenticationResult.RefreshToken, *result.AuthenticationResult.IdToken, 0)
+	tokenEntity := securityDomain.NewTokenEntity(*result.AuthenticationResult.AccessToken, refreshToken, *result.AuthenticationResult.IdToken, int(result.AuthenticationResult.ExpiresIn))
 	return tokenEntity, nil
 
 }

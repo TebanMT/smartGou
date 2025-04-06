@@ -14,6 +14,7 @@ export class SmartGouStack extends cdk.Stack {
   public readonly signUpByEmailFunction: lambda.Function;
   public readonly confirmOtpByEmailFunction: lambda.Function;
   public readonly loginWithEmailFunction: lambda.Function;
+  public readonly refreshTokenFunction: lambda.Function;
   // lambda functions for users module
   public readonly completeOnboardingFunction: lambda.Function;
   public readonly getUserProfileFunction: lambda.Function;
@@ -73,6 +74,16 @@ export class SmartGouStack extends cdk.Stack {
       functionName: 'loginWithEmailLambda',
       memorySize: 1024,
       code: lambda.Code.fromAsset('../../bin/login_with_email/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
+
+    this.refreshTokenFunction = new lambda.Function(this, 'refreshTokenLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'refreshTokenLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/refresh_token/function.zip'),
       handler: 'bootstrap',
       environment: envVariables,
       role: this.cognitoRole.role,
@@ -143,6 +154,12 @@ export class SmartGouStack extends cdk.Stack {
       path: '/auth/sessions',
       methods: [HttpMethod.POST],
       integration: new HttpLambdaIntegration('LoginWithEmailIntegration', this.loginWithEmailFunction),
+    });
+
+    httpApi.addRoutes({
+      path: '/auth/sessions',
+      methods: [HttpMethod.PATCH],
+      integration: new HttpLambdaIntegration('RefreshTokenIntegration', this.refreshTokenFunction),
     });
     // End Auth routes
 
