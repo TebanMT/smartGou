@@ -241,7 +241,7 @@ func (s *CognitoService) LoginWithEmail(ctx context.Context, email string, passw
 }
 
 func (s *CognitoService) RefreshToken(ctx context.Context, refreshToken string) (*securityDomain.TokenEntity, error) {
-	result, err := s.client.InitiateAuth(context.TODO(), &cognitoidentityprovider.InitiateAuthInput{
+	result, err := s.client.InitiateAuth(ctx, &cognitoidentityprovider.InitiateAuthInput{
 		AuthFlow: types.AuthFlowTypeRefreshTokenAuth,
 		ClientId: aws.String(s.userPoolClientId),
 		AuthParameters: map[string]string{
@@ -268,10 +268,11 @@ func (s *CognitoService) RefreshToken(ctx context.Context, refreshToken string) 
 }
 
 func (s *CognitoService) Logout(ctx context.Context, accessToken string) (bool, error) {
-	_, err := s.client.GlobalSignOut(context.TODO(), &cognitoidentityprovider.GlobalSignOutInput{
+	_, err := s.client.GlobalSignOut(ctx, &cognitoidentityprovider.GlobalSignOutInput{
 		AccessToken: aws.String(accessToken),
 	})
 	if err != nil {
+		fmt.Println("Error: ", err)
 		if strings.Contains(err.Error(), "NotAuthorizedException") {
 			return false, securityDomain.ErrInvalidAccessToken
 		}

@@ -15,6 +15,7 @@ build-all-lambdas:
 	make build-lambda-function MODULE_NAME=users FUNC_NAME=compleate_onbording
 	make build-lambda-function MODULE_NAME=users FUNC_NAME=get_user_profile
 	make build-lambda-function MODULE_NAME=security FUNC_NAME=refresh_token
+	make build-lambda-function MODULE_NAME=security FUNC_NAME=logout
 
 build-custom-auth:
 	powershell -Command "New-Item -ItemType Directory -Path '$(ROOT_DIR)/bin/custom_auth/define_auth_challenge' -Force" && \

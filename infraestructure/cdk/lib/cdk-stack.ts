@@ -15,6 +15,7 @@ export class SmartGouStack extends cdk.Stack {
   public readonly confirmOtpByEmailFunction: lambda.Function;
   public readonly loginWithEmailFunction: lambda.Function;
   public readonly refreshTokenFunction: lambda.Function;
+  public readonly logoutFunction: lambda.Function;
   // lambda functions for users module
   public readonly completeOnboardingFunction: lambda.Function;
   public readonly getUserProfileFunction: lambda.Function;
@@ -84,6 +85,16 @@ export class SmartGouStack extends cdk.Stack {
       functionName: 'refreshTokenLambda',
       memorySize: 1024,
       code: lambda.Code.fromAsset('../../bin/refresh_token/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
+
+    this.logoutFunction = new lambda.Function(this, 'logoutLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'logoutLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/logout/function.zip'),
       handler: 'bootstrap',
       environment: envVariables,
       role: this.cognitoRole.role,
@@ -160,6 +171,12 @@ export class SmartGouStack extends cdk.Stack {
       path: '/auth/sessions',
       methods: [HttpMethod.PATCH],
       integration: new HttpLambdaIntegration('RefreshTokenIntegration', this.refreshTokenFunction),
+    });
+
+    httpApi.addRoutes({
+      path: '/auth/sessions',
+      methods: [HttpMethod.DELETE],
+      integration: new HttpLambdaIntegration('LogoutIntegration', this.logoutFunction),
     });
     // End Auth routes
 

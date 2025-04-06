@@ -11,6 +11,18 @@ definitions:
       status_code:
         type: integer
     type: object
+  common.Response-main_LogoutResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.LogoutResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
   common.Response-main_RequestSignUpResponse:
     properties:
       data:
@@ -90,6 +102,18 @@ definitions:
     required:
     - email
     - password
+    type: object
+  main.LogoutRequest:
+    properties:
+      access_token:
+        type: string
+    required:
+    - access_token
+    type: object
+  main.LogoutResponse:
+    properties:
+      success:
+        type: boolean
     type: object
   main.RefreshTokenRequest:
     properties:
@@ -389,6 +413,45 @@ paths:
       tags:
       - security
   /auth/sessions:
+    delete:
+      consumes:
+      - application/json
+      description: |-
+        This endpoint is used to logout a user. It invalidates the refresh token not the access token.
+        The access token could be used until its expiration but you can´t create a new access token with the same refresh token.
+      parameters:
+      - description: Access token
+        in: body
+        name: access_token
+        required: true
+        schema:
+          $ref: '#/definitions/main.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response-main_LogoutResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Response-any'
+      summary: Logout
+      tags:
+      - security
     patch:
       consumes:
       - application/json

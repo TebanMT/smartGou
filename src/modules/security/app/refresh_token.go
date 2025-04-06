@@ -19,6 +19,9 @@ func NewRefreshTokenUseCase(tokenService securityDomain.TokenManager) *RefreshTo
 }
 
 func (u *RefreshTokenUseCase) RefreshToken(ctx context.Context, refreshToken string) (*securityDomain.TokenEntity, error) {
+	if refreshToken == "" {
+		return nil, securityDomain.ErrInvalidRefreshToken
+	}
 	token, err := u.tokenService.RefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, err
