@@ -15,7 +15,7 @@ variable "db_engine" {
 
 variable "db_engine_version" {
   description = "Database engine version"
-  default     = "17.3"
+  default     = "17.4"
 }
 
 variable "db_parameter_group_name" {
@@ -35,7 +35,7 @@ variable "db_publicly_accessible" {
 
 variable "db_name" {
   description = "Database name"
-  default     = "smartGo"
+  default     = "smartGou"
 }
 
 variable "db_username" {

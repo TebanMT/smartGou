@@ -1,6 +1,6 @@
 provider "aws" {
   region = "us-east-1"
-  profile = "personal"
+  profile = "duvantis"
 }
 
 module "vpc" {

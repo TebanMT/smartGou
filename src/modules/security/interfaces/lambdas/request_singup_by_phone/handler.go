@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/TebanMT/smartGou/infraestructure/db"
-	"github.com/TebanMT/smartGou/src/common"
-	"github.com/TebanMT/smartGou/src/common/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/app"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
 	"github.com/TebanMT/smartGou/src/modules/users/infraestructure/db/repositories"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
@@ -40,12 +40,12 @@ var cognitoService *cognito.CognitoService
 var err error
 
 var dbInstance *gorm.DB
-var unitOfWork domain.UnitOfWork
+var unitOfWork commonDomain.UnitOfWork
 var userRepository userDomain.UserRepository
 
 func init() {
 	dbInstance = db.InitConnection()
-	unitOfWork = common.NewUnitOfWork(dbInstance)
+	unitOfWork = commonDomain.NewUnitOfWork(dbInstance)
 	userRepository = repositories.NewUserRepository()
 	cognitoService, err = cognito.NewCognitoService(os.Getenv("COGNITO_USER_POOL_ID"), os.Getenv("COGNITO_USER_POOL_CLIENT_ID"))
 	if err != nil {
@@ -74,19 +74,19 @@ func RequestSignUpHandler(ctx context.Context, request events.APIGatewayProxyReq
 	var requestSignUpRequest RequestSignUpRequest
 	err := json.Unmarshal([]byte(request.Body), &requestSignUpRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
-	err = common.ValidateRequest(requestSignUpRequest)
+	err = utils.ValidateRequest(requestSignUpRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	loginChallenge, err := app.NewRequestOTPByPhone(cognitoService, userRepository, unitOfWork).RequestOTPByPhone(ctx, requestSignUpRequest.PhoneNumber, requestSignUpRequest.DailingCode)
 
 	switch {
 	case err == nil:
-		return common.JsonResponse(200, "Verification code sent successfully", RequestSignUpResponse{
+		return utils.JsonResponse(200, "Verification code sent successfully", RequestSignUpResponse{
 			UserID:      loginChallenge.UserId,
 			Session:     loginChallenge.Session,
 			MaxAttempts: loginChallenge.MaxAttempts,
@@ -97,15 +97,15 @@ func RequestSignUpHandler(ctx context.Context, request events.APIGatewayProxyReq
 		errors.Is(err, securityDomain.ErrInvalidDailingCodeLength),
 		errors.Is(err, securityDomain.ErrInvalidPhoneFormat),
 		errors.Is(err, securityDomain.ErrInvalidDailingCodeFormat):
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, userDomain.ErrPhoneAlreadyExists),
 		errors.Is(err, userDomain.ErrEmailAlreadyExists),
 		errors.Is(err, userDomain.ErrUsernameAlreadyExists),
 		errors.Is(err, securityDomain.ErrPhoneAlreadyVerified),
 		errors.Is(err, securityDomain.ErrUserAlreadyExists):
-		return common.JsonResponse[any](409, "", nil, err.Error())
+		return utils.JsonResponse[any](409, "", nil, err.Error())
 	default:
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 

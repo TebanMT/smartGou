@@ -8,11 +8,12 @@ import (
 	"os"
 
 	"github.com/TebanMT/smartGou/infraestructure/db"
-	"github.com/TebanMT/smartGou/src/common"
 	"github.com/TebanMT/smartGou/src/modules/security/app"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
 	"github.com/TebanMT/smartGou/src/modules/users/infraestructure/db/repositories"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
@@ -55,28 +56,28 @@ func confirmOtpLambdaHandler(ctx context.Context, request events.APIGatewayProxy
 	var confirmOtpRequest ConfirmOtpRequest
 	err := json.Unmarshal([]byte(request.Body), &confirmOtpRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
-	err = common.ValidateRequest(confirmOtpRequest)
+	err = utils.ValidateRequest(confirmOtpRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
-	unitOfWork := common.NewUnitOfWork(dbInstance)
+	unitOfWork := commonDomain.NewUnitOfWork(dbInstance)
 	userRepository := repositories.NewUserRepository()
 	err = app.NewVerifyOTPByEmail(cognitoService, userRepository, unitOfWork).VerifyOTPByEmail(ctx, confirmOtpRequest.UserID, confirmOtpRequest.Code)
 	switch true {
 	case err == nil:
-		return common.JsonResponse[any](200, "", nil, "")
+		return utils.JsonResponse[any](200, "", nil, "")
 	case errors.Is(err, securityDomain.ErrUserNotFoundException):
-		return common.JsonResponse[any](404, "", nil, err.Error())
+		return utils.JsonResponse[any](404, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrInvalidOTP):
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrUserAlreadyConfirmed):
-		return common.JsonResponse[any](409, "", nil, err.Error())
+		return utils.JsonResponse[any](409, "", nil, err.Error())
 	default:
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 

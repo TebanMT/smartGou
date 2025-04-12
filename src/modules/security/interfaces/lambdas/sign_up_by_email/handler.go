@@ -8,12 +8,12 @@ import (
 	"os"
 
 	"github.com/TebanMT/smartGou/infraestructure/db"
-	"github.com/TebanMT/smartGou/src/common"
-	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/app"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
 	"github.com/TebanMT/smartGou/src/modules/users/infraestructure/db/repositories"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"gorm.io/gorm"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -38,7 +38,7 @@ var userRepository userDomain.UserRepository
 
 func init() {
 	dbInstance = db.InitConnection()
-	unitOfWork = common.NewUnitOfWork(dbInstance)
+	unitOfWork = commonDomain.NewUnitOfWork(dbInstance)
 	userRepository = repositories.NewUserRepository()
 	cognitoService, err = cognito.NewCognitoService(os.Getenv("COGNITO_USER_POOL_ID"), os.Getenv("COGNITO_USER_POOL_CLIENT_ID"))
 	if err != nil {
@@ -66,26 +66,26 @@ func signUpByEmailLambdaHandler(ctx context.Context, request events.APIGatewayPr
 	var signUpByEmailRequest SignUpByEmailRequest
 	err := json.Unmarshal([]byte(request.Body), &signUpByEmailRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
-	err = common.ValidateRequest(signUpByEmailRequest)
+	err = utils.ValidateRequest(signUpByEmailRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	userID, err := app.NewSignUpByEmailUseCase(cognitoService, userRepository, unitOfWork).SignUpByEmail(ctx, signUpByEmailRequest.Email, signUpByEmailRequest.Password)
 	switch {
 	case err == nil:
-		return common.JsonResponse(200, "", SignUpByEmailResponse{UserID: userID}, "")
+		return utils.JsonResponse(200, "", SignUpByEmailResponse{UserID: userID}, "")
 	case errors.Is(err, userDomain.ErrInvalidEmail),
 		errors.Is(err, userDomain.ErrInvalidPassword),
 		errors.Is(err, userDomain.ErrPasswordTooShort):
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, userDomain.ErrEmailAlreadyExists):
-		return common.JsonResponse[any](409, "", nil, err.Error())
+		return utils.JsonResponse[any](409, "", nil, err.Error())
 	default:
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 

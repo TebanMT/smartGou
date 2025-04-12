@@ -66,7 +66,7 @@ resource "aws_lambda_function" "custom_auth_lambda_functions" {
   source_code_hash = filebase64sha256("${path.module}/../../bin/custom_auth/${each.value}/function.zip")
 }
 
-resource "aws_cognito_user_pool" "smartGo" {
+resource "aws_cognito_user_pool" "smartGou" {
   name = var.cognito_user_pool_name
 
   
@@ -152,13 +152,13 @@ resource "aws_lambda_permission" "custom_auth_lambda_permissions" {
   for_each = var.custom_auth_lambda_functions
   function_name = aws_lambda_function.custom_auth_lambda_functions[each.value].arn
   principal = "cognito-idp.amazonaws.com"
-  source_arn = aws_cognito_user_pool.smartGo.arn
+  source_arn = aws_cognito_user_pool.smartGou.arn
 }
 
 
-resource "aws_cognito_user_pool_client" "smartGo" {
+resource "aws_cognito_user_pool_client" "smartGou" {
   name = var.cognito_user_pool_client_name
-  user_pool_id = aws_cognito_user_pool.smartGo.id
+  user_pool_id = aws_cognito_user_pool.smartGou.id
 
   # authentication methods
   explicit_auth_flows = var.explicit_auth_flows

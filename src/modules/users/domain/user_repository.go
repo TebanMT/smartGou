@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"github.com/TebanMT/smartGou/src/common/domain"
+	"github.com/TebanMT/smartGou/src/shared/domain"
 	"github.com/google/uuid"
 )
 

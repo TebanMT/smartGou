@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/TebanMT/smartGou/infraestructure/db"
-	"github.com/TebanMT/smartGou/src/common"
-	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/app"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
 	"github.com/TebanMT/smartGou/src/modules/users/infraestructure/db/repositories"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
@@ -44,7 +44,7 @@ var userRepository userDomain.UserRepository
 
 func init() {
 	dbInstance = db.InitConnection()
-	unitOfWork = common.NewUnitOfWork(dbInstance)
+	unitOfWork = commonDomain.NewUnitOfWork(dbInstance)
 	userRepository = repositories.NewUserRepository()
 	cognitoService, err = cognito.NewCognitoService(os.Getenv("COGNITO_USER_POOL_ID"), os.Getenv("COGNITO_USER_POOL_CLIENT_ID"))
 	if err != nil {
@@ -72,12 +72,12 @@ func VerifyRequestSignUpHandler(ctx context.Context, request events.APIGatewayPr
 	var requestSignUpRequest VerifyOTPByPhoneRequest
 	err := json.Unmarshal([]byte(request.Body), &requestSignUpRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
-	err = common.ValidateRequest(requestSignUpRequest)
+	err = utils.ValidateRequest(requestSignUpRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	newUserCase := app.NewVerifyOTPByPhone(cognitoService, userRepository, unitOfWork)
@@ -85,22 +85,22 @@ func VerifyRequestSignUpHandler(ctx context.Context, request events.APIGatewayPr
 
 	switch true {
 	case tokenEntity != nil:
-		return common.JsonResponse[any](200, "Verification code verified successfully", tokenEntity, "")
+		return utils.JsonResponse[any](200, "Verification code verified successfully", tokenEntity, "")
 	case errors.Is(err, securityDomain.ErrInvalidOTP):
-		return common.JsonResponse[any](400, "", VerifyOTPByPhoneResponse{
+		return utils.JsonResponse[any](400, "", VerifyOTPByPhoneResponse{
 			UserID:      loginChallenge.UserId,
 			Session:     loginChallenge.Session,
 			MaxAttempts: loginChallenge.MaxAttempts,
 			ExpiresAt:   loginChallenge.ExpiresAt,
 		}, "")
 	case errors.Is(err, securityDomain.ErrMaxAttemptsReached):
-		return common.JsonResponse[any](429, "", nil, err.Error())
+		return utils.JsonResponse[any](429, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrInvalidSession):
-		return common.JsonResponse[any](401, "", nil, err.Error())
+		return utils.JsonResponse[any](401, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrUserNotFoundException):
-		return common.JsonResponse[any](404, "", nil, err.Error())
+		return utils.JsonResponse[any](404, "", nil, err.Error())
 	default:
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 

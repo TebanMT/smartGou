@@ -7,10 +7,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/TebanMT/smartGou/src/common"
 	"github.com/TebanMT/smartGou/src/modules/security/app"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -50,26 +50,26 @@ func logoutLambdaHandler(ctx context.Context, request events.APIGatewayProxyRequ
 	var logoutRequest LogoutRequest
 	err := json.Unmarshal([]byte(request.Body), &logoutRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
-	err = common.ValidateRequest(logoutRequest)
+	err = utils.ValidateRequest(logoutRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	success, err := app.NewLogoutUseCase(cognitoService).Logout(ctx, logoutRequest.AccessToken)
 	switch true {
 	case err == nil:
-		return common.JsonResponse(200, "", LogoutResponse{
+		return utils.JsonResponse(200, "", LogoutResponse{
 			Success: success,
 		}, "")
 	case errors.Is(err, securityDomain.ErrInvalidAccessToken):
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrUserNotFoundException):
-		return common.JsonResponse[any](404, "", nil, err.Error())
+		return utils.JsonResponse[any](404, "", nil, err.Error())
 	default:
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 

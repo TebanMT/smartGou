@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TebanMT/smartGou/src/common"
-	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 )
 
 type passwordRecoveryUseCase struct {
@@ -89,7 +89,7 @@ func (u *passwordRecoveryUseCase) ValidateUserByEmail(ctx context.Context, email
 			u.unitOfWork.Rollback(tx)
 		}
 	}()
-	user, err = common.CheckUserExistenceByEmail(tx, u.userRepository, user)
+	user, err = utils.CheckUserExistenceByEmail(tx, u.userRepository, user)
 	if user == nil {
 		fmt.Println("User not found. Error: ", err)
 		return nil, userDomain.ErrUserNotFound

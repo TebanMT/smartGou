@@ -1,11 +1,11 @@
 variable "cognito_user_pool_name" {
   description = "Cognito user pool name"
-  default     = "smartGo-user-pool"
+  default     = "smartGou-user-pool"
 }
 
 variable "cognito_user_pool_client_name" {
   description = "Cognito user pool client name"
-  default     = "smartGo-user-pool-client"
+  default     = "smartGou-user-pool-client"
 }
 
 variable "alias_attributes" {

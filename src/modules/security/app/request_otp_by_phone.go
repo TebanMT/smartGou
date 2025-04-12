@@ -13,10 +13,10 @@ package app
 import (
 	"context"
 
-	"github.com/TebanMT/smartGou/src/common"
-	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 )
 
 type RequestOTPByPhone struct {
@@ -62,13 +62,13 @@ func (r *RequestOTPByPhone) RequestOTPByPhone(ctx context.Context, phoneNumber s
 		}
 	}()
 
-	user, err := common.CheckUserExistenceByPhone(tx, r.userRepository, &userEntity)
+	user, err := utils.CheckUserExistenceByPhone(tx, r.userRepository, &userEntity)
 
 	if err != nil && user == nil {
 		return nil, err
 	}
 
-	if user.ID == 0 {
+	if user == nil {
 		userEntity.GenerateUserID()
 		user, err = r.userRepository.CreateUser(tx, &userEntity)
 		if err != nil {

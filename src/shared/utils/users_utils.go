@@ -1,10 +1,10 @@
-package common
+package utils
 
 import (
 	"strings"
 
-	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
 )
 
 type CheckType struct {

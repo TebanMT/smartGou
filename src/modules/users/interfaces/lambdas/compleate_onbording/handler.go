@@ -6,11 +6,13 @@ import (
 	"os"
 
 	"github.com/TebanMT/smartGou/infraestructure/db"
-	"github.com/TebanMT/smartGou/src/common"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
 	userApp "github.com/TebanMT/smartGou/src/modules/users/app"
 	userRepositories "github.com/TebanMT/smartGou/src/modules/users/infraestructure/db/repositories"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/middleware"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
@@ -26,7 +28,7 @@ var err error
 
 func init() {
 	dbInstance := db.InitConnection()
-	unitOfWork := common.NewUnitOfWork(dbInstance)
+	unitOfWork := commonDomain.NewUnitOfWork(dbInstance)
 	userRepository := userRepositories.NewUserRepository()
 	completeOnboardingUseCase = userApp.NewCompleteOnboardingUseCase(userRepository, unitOfWork)
 	cognitoService, err = cognito.NewCognitoService(os.Getenv("COGNITO_USER_POOL_ID"), os.Getenv("COGNITO_USER_POOL_CLIENT_ID"))
@@ -52,28 +54,28 @@ func completeOnboardingLambdaHandler(ctx context.Context, request events.APIGate
 	claims := request.RequestContext.Authorizer["claims"].(*securityDomain.TokenClaims)
 	id_user_claims, err := uuid.Parse(claims.UserId)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 	id_user, err := uuid.Parse(request.PathParameters["id-user"])
 	if err != nil || id_user != id_user_claims {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 	userPathRequest.ID = id_user
 
-	err = common.ValidateRequest(userPathRequest)
+	err = utils.ValidateRequest(userPathRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	err = completeOnboardingUseCase.CompleteOnboarding(ctx, userPathRequest.ID)
 	if err != nil {
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 
-	return common.JsonResponse[any](200, "", nil, "")
+	return utils.JsonResponse[any](200, "", nil, "")
 }
 
 func main() {
-	handler := common.AuthenticationMiddleware(cognitoService, completeOnboardingLambdaHandler)
+	handler := middleware.AuthenticationMiddleware(cognitoService, completeOnboardingLambdaHandler)
 	lambda.Start(handler)
 }

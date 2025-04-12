@@ -12,10 +12,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/TebanMT/smartGou/src/common"
-	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 )
 
 type SignUpByEmailUseCase struct {
@@ -37,7 +37,7 @@ func (u *SignUpByEmailUseCase) SignUpByEmail(ctx context.Context, email string, 
 		VerifiedPhone: false,
 		VerifiedEmail: false,
 	}
-	err := common.ValidateUserEmailAndPassword(&userEntity)
+	err := utils.ValidateUserEmailAndPassword(&userEntity)
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +56,7 @@ func (u *SignUpByEmailUseCase) SignUpByEmail(ctx context.Context, email string, 
 		}
 	}()
 
-	user, err := common.CheckUserExistenceByEmail(tx, u.userRepository, &userEntity)
+	user, err := utils.CheckUserExistenceByEmail(tx, u.userRepository, &userEntity)
 
 	if err != nil && user == nil {
 		return "", err

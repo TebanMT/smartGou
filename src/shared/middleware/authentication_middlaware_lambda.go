@@ -1,10 +1,11 @@
-package common
+package middleware
 
 import (
 	"context"
 	"strings"
 
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
+	utils "github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 )
 
@@ -14,11 +15,11 @@ func AuthenticationMiddleware(s securityDomain.TokenManager, next LambdaHandler)
 	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		token, err := extractToken(request)
 		if err != nil {
-			return JsonResponse[any](401, "", nil, err.Error())
+			return utils.JsonResponse[any](401, "", nil, err.Error())
 		}
 		claims, err := s.ParseTokenAndValidate(ctx, token)
 		if err != nil {
-			return JsonResponse[any](401, "", nil, err.Error())
+			return utils.JsonResponse[any](401, "", nil, err.Error())
 		}
 		request.RequestContext.Authorizer = map[string]interface{}{
 			"claims": claims,

@@ -1,6 +1,6 @@
-resource "aws_security_group" "smartGo_rds_sg" {
-  name        = "smartGo-rds-sg"
-  description = "Security group for smartGo RDS DB instance"
+resource "aws_security_group" "smartGou_rds_sg" {
+  name        = "smartGou-rds-sg"
+  description = "Security group for smartGou RDS DB instance"
   vpc_id      = var.vpc_id
 
   ingress {

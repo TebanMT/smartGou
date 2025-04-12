@@ -8,13 +8,13 @@ import (
 	"os"
 
 	"github.com/TebanMT/smartGou/infraestructure/db"
-	"github.com/TebanMT/smartGou/src/common"
-	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/app"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
 	"github.com/TebanMT/smartGou/src/modules/users/infraestructure/db/repositories"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"gorm.io/gorm"
@@ -39,7 +39,7 @@ var userRepository userDomain.UserRepository
 
 func init() {
 	dbInstance = db.InitConnection()
-	unitOfWork = common.NewUnitOfWork(dbInstance)
+	unitOfWork = commonDomain.NewUnitOfWork(dbInstance)
 	userRepository = repositories.NewUserRepository()
 	cognitoService, err = cognito.NewCognitoService(os.Getenv("COGNITO_USER_POOL_ID"), os.Getenv("COGNITO_USER_POOL_CLIENT_ID"))
 	if err != nil {
@@ -63,29 +63,29 @@ func ResetPasswordHandler(ctx context.Context, request events.APIGatewayProxyReq
 	var resetPasswordRequest ResetPasswordRequest
 	err := json.Unmarshal([]byte(request.Body), &resetPasswordRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
-	err = common.ValidateRequest(resetPasswordRequest)
+	err = utils.ValidateRequest(resetPasswordRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	passwordRecoveryUseCase := app.NewPasswordRecoveryUseCase(cognitoService, userRepository, unitOfWork)
 	success, err := passwordRecoveryUseCase.ResetPassword(ctx, resetPasswordRequest.Email, resetPasswordRequest.Password, resetPasswordRequest.Code)
 	switch true {
 	case err == nil:
-		return common.JsonResponse(200, "", ResetPasswordResponse{Success: success}, "")
+		return utils.JsonResponse(200, "", ResetPasswordResponse{Success: success}, "")
 	case errors.Is(err, securityDomain.ErrUserNotFoundException), errors.Is(err, userDomain.ErrInvalidEmail):
-		return common.JsonResponse[any](404, "", nil, err.Error())
+		return utils.JsonResponse[any](404, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrInvalidOTP), errors.Is(err, userDomain.ErrInvalidEmail),
 		errors.Is(err, userDomain.ErrEmailRequired), errors.Is(err, userDomain.ErrPasswordRequired),
 		errors.Is(err, userDomain.ErrPasswordTooShort), errors.Is(err, userDomain.ErrInvalidPassword):
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrExpiredOTP):
-		return common.JsonResponse[any](401, "", nil, err.Error())
+		return utils.JsonResponse[any](401, "", nil, err.Error())
 	default:
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 

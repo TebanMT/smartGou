@@ -8,9 +8,9 @@ package app
 import (
 	"context"
 
-	commonDomain "github.com/TebanMT/smartGou/src/common/domain"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	userDomain "github.com/TebanMT/smartGou/src/modules/users/domain"
+	commonDomain "github.com/TebanMT/smartGou/src/shared/domain"
 	"github.com/google/uuid"
 )
 

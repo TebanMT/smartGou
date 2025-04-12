@@ -7,10 +7,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/TebanMT/smartGou/src/common"
 	"github.com/TebanMT/smartGou/src/modules/security/app"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -57,29 +57,29 @@ func LoginWithEmailHandler(ctx context.Context, request events.APIGatewayProxyRe
 	var loginWithEmailRequest LoginWithEmailRequest
 	err := json.Unmarshal([]byte(request.Body), &loginWithEmailRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	loginWithEmail := app.NewLoginWithEmail(cognitoService)
 	token, err := loginWithEmail.LoginWithEmail(ctx, loginWithEmailRequest.Email, loginWithEmailRequest.Password)
 	switch true {
 	case err == nil:
-		return common.JsonResponse(200, "", &TokenResponse{
+		return utils.JsonResponse(200, "", &TokenResponse{
 			AccessToken:  token.AccessToken,
 			RefreshToken: token.RefreshToken,
 			IdToken:      token.IdToken,
 			ExpiresIn:    token.ExpiresIn,
 		}, "")
 	case errors.Is(err, securityDomain.ErrUserNotFoundException):
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrInvalidCredentials):
-		return common.JsonResponse[any](401, "", nil, err.Error())
+		return utils.JsonResponse[any](401, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrUserNotConfirmed):
-		return common.JsonResponse[any](403, "", nil, err.Error())
+		return utils.JsonResponse[any](403, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrMaxAttemptsReached):
-		return common.JsonResponse[any](403, "", nil, err.Error())
+		return utils.JsonResponse[any](403, "", nil, err.Error())
 	default:
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 
 }

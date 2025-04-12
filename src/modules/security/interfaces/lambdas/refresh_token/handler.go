@@ -7,10 +7,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/TebanMT/smartGou/src/common"
 	"github.com/TebanMT/smartGou/src/modules/security/app"
 	securityDomain "github.com/TebanMT/smartGou/src/modules/security/domain"
 	"github.com/TebanMT/smartGou/src/modules/security/infrastructure/cognito"
+	"github.com/TebanMT/smartGou/src/shared/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -52,30 +52,30 @@ func refreshTokenLambdaHandler(ctx context.Context, request events.APIGatewayPro
 	var refreshTokenRequest RefreshTokenRequest
 	err := json.Unmarshal([]byte(request.Body), &refreshTokenRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
-	err = common.ValidateRequest(refreshTokenRequest)
+	err = utils.ValidateRequest(refreshTokenRequest)
 	if err != nil {
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	}
 
 	token, err := app.NewRefreshTokenUseCase(cognitoService).RefreshToken(ctx, refreshTokenRequest.RefreshToken)
 	switch true {
 	case err == nil:
-		return common.JsonResponse(200, "", RefreshTokenResponse{
+		return utils.JsonResponse(200, "", RefreshTokenResponse{
 			AccessToken:  token.AccessToken,
 			RefreshToken: token.RefreshToken,
 			IdToken:      token.IdToken,
 			ExpiresIn:    token.ExpiresIn,
 		}, "")
 	case errors.Is(err, securityDomain.ErrRefreshTokenExpired):
-		return common.JsonResponse[any](401, "", nil, err.Error())
+		return utils.JsonResponse[any](401, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrInvalidRefreshToken):
-		return common.JsonResponse[any](400, "", nil, err.Error())
+		return utils.JsonResponse[any](400, "", nil, err.Error())
 	case errors.Is(err, securityDomain.ErrUserNotFoundException):
-		return common.JsonResponse[any](404, "", nil, err.Error())
+		return utils.JsonResponse[any](404, "", nil, err.Error())
 	default:
-		return common.JsonResponse[any](500, "", nil, err.Error())
+		return utils.JsonResponse[any](500, "", nil, err.Error())
 	}
 }
 
