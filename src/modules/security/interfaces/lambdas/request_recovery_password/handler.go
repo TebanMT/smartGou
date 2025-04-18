@@ -51,10 +51,10 @@ func init() {
 // @Accept  json
 // @Produce  json
 // @Param payload body RequestRecoveryPassword true "Request password recovery"
-// @Success 200 {object} common.Response[RequestRecoveryPasswordResponse]
-// @Failure 400 {object} common.Response[any]
-// @Failure 404 {object} common.Response[any]
-// @Failure 500 {object} common.Response[any]
+// @Success 200 {object} utils.Response[RequestRecoveryPasswordResponse]
+// @Failure 400 {object} utils.Response[any]
+// @Failure 404 {object} utils.Response[any]
+// @Failure 500 {object} utils.Response[any]
 // @Router /auth/recovery-password [post]
 func RequestRecoveryPasswordHandler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var request RequestRecoveryPassword

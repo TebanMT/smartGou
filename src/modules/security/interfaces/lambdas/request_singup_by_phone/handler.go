@@ -65,10 +65,10 @@ func init() {
 // @Accept  json
 // @Produce  json
 // @Param payload body RequestSignUpRequest true "Request body"
-// @Success 200 {object} common.Response[RequestSignUpResponse]
-// @Failure 400 {object} common.Response[any]
-// @Failure 409 {object} common.Response[any]
-// @Failure 500 {object} common.Response[any]
+// @Success 200 {object} utils.Response[RequestSignUpResponse]
+// @Failure 400 {object} utils.Response[any]
+// @Failure 409 {object} utils.Response[any]
+// @Failure 500 {object} utils.Response[any]
 // @Router /auth/otp [post]
 func RequestSignUpHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var requestSignUpRequest RequestSignUpRequest

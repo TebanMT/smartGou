@@ -42,11 +42,11 @@ func init() {
 // @Accept  json
 // @Produce  json
 // @Param refresh_token body RefreshTokenRequest true "Refresh token"
-// @Success 200 {object} RefreshTokenResponse
-// @Failure 400 {object} common.Response[any]
-// @Failure 401 {object} common.Response[any]
-// @Failure 404 {object} common.Response[any]
-// @Failure 500 {object} common.Response[any]
+// @Success 200 {object} utils.Response[RefreshTokenResponse]
+// @Failure 400 {object} utils.Response[any]
+// @Failure 401 {object} utils.Response[any]
+// @Failure 404 {object} utils.Response[any]
+// @Failure 500 {object} utils.Response[any]
 // @Router /auth/sessions [patch]
 func refreshTokenLambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var refreshTokenRequest RefreshTokenRequest

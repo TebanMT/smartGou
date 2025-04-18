@@ -21,6 +21,9 @@ export class SmartGouStack extends cdk.Stack {
   // lambda functions for users module
   public readonly completeOnboardingFunction: lambda.Function;
   public readonly getUserProfileFunction: lambda.Function;
+  // lambda functions for reference module
+  public readonly getMetaCategoriesFunction: lambda.Function;
+  public readonly getCategoriesFunction: lambda.Function;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -146,6 +149,28 @@ export class SmartGouStack extends cdk.Stack {
     });
     // End Users functions
 
+    // Reference functions
+    this.getMetaCategoriesFunction = new lambda.Function(this, 'getMetaCategoriesLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'getMetaCategoriesLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/get_meta_categories/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
+
+    this.getCategoriesFunction = new lambda.Function(this, 'getCategoriesLambda', {
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      functionName: 'getCategoriesLambda',
+      memorySize: 1024,
+      code: lambda.Code.fromAsset('../../bin/get_categories/function.zip'),
+      handler: 'bootstrap',
+      environment: envVariables,
+      role: this.cognitoRole.role,
+    });
+    // End Reference functions
+
     const httpApi = new HttpApi(this, 'SmartGouApiRest', {
       apiName: 'SmartGou API REST',
       description: 'This API serves enpoints to be consume by SmartGou app.',
@@ -156,6 +181,7 @@ export class SmartGouStack extends cdk.Stack {
         allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key'],
       }
     });
+
 
 
     // Auth routes
@@ -227,6 +253,20 @@ export class SmartGouStack extends cdk.Stack {
       integration: new HttpLambdaIntegration('GetUserProfileIntegration', this.getUserProfileFunction),
     });
     // End Users routes
+
+    // Reference routes
+    httpApi.addRoutes({
+      path: '/references/meta-categories',
+      methods: [HttpMethod.GET],
+      integration: new HttpLambdaIntegration('GetMetaCategoriesIntegration', this.getMetaCategoriesFunction),
+    });
+
+    httpApi.addRoutes({
+      path: '/references/categories',
+      methods: [HttpMethod.GET],
+      integration: new HttpLambdaIntegration('GetCategoriesIntegration', this.getCategoriesFunction),
+    });
+    // End Reference routes
 
 
     new cdk.CfnOutput(this, 'HttpApiUrl', {

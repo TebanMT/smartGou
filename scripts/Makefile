@@ -18,6 +18,8 @@ build-all-lambdas:
 	make build-lambda-function MODULE_NAME=security FUNC_NAME=logout
 	make build-lambda-function MODULE_NAME=security FUNC_NAME=request_recovery_password
 	make build-lambda-function MODULE_NAME=security FUNC_NAME=reset_password
+	make build-lambda-function MODULE_NAME=reference FUNC_NAME=get_meta_categories
+	make build-lambda-function MODULE_NAME=reference FUNC_NAME=get_categories
 
 build-custom-auth:
 	powershell -Command "New-Item -ItemType Directory -Path '$(ROOT_DIR)/bin/custom_auth/define_auth_challenge' -Force" && \

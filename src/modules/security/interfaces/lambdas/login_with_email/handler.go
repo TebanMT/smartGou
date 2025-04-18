@@ -47,11 +47,11 @@ func init() {
 // @Accept  json
 // @Produce  json
 // @Param payload body LoginWithEmailRequest true "Request body"
-// @Success 200 {object} common.Response[TokenResponse]
-// @Failure 400 {object} common.Response[any]
-// @Failure 401 {object} common.Response[any]
-// @Failure 403 {object} common.Response[any]
-// @Failure 500 {object} common.Response[any]
+// @Success 200 {object} utils.Response[TokenResponse]
+// @Failure 400 {object} utils.Response[any]
+// @Failure 401 {object} utils.Response[any]
+// @Failure 403 {object} utils.Response[any]
+// @Failure 500 {object} utils.Response[any]
 // @Router /auth/sessions [post]
 func LoginWithEmailHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var loginWithEmailRequest LoginWithEmailRequest

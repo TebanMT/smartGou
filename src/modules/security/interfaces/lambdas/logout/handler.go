@@ -40,11 +40,11 @@ func init() {
 // @Accept  json
 // @Produce  json
 // @Param access_token body LogoutRequest true "Access token"
-// @Success 200 {object} common.Response[LogoutResponse]
-// @Failure 400 {object} common.Response[any]
-// @Failure 401 {object} common.Response[any]
-// @Failure 404 {object} common.Response[any]
-// @Failure 500 {object} common.Response[any]
+// @Success 200 {object} utils.Response[LogoutResponse]
+// @Failure 400 {object} utils.Response[any]
+// @Failure 401 {object} utils.Response[any]
+// @Failure 404 {object} utils.Response[any]
+// @Failure 500 {object} utils.Response[any]
 // @Router /auth/sessions [delete]
 func logoutLambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var logoutRequest LogoutRequest

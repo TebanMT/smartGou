@@ -1,111 +1,47 @@
 basePath: /v1
 definitions:
-  common.Response-any:
+  github_com_TebanMT_smartGou_src_modules_reference_interfaces_lambdas_get_categories.ResponsePaginated:
     properties:
-      data: {}
-      exception:
-        type: string
-        x-nullable: "true"
-      message:
-        type: string
-      status_code:
+      categories:
+        items:
+          $ref: '#/definitions/main.Category'
+        type: array
+      limit:
+        type: integer
+      offset:
+        type: integer
+      total:
         type: integer
     type: object
-  common.Response-main_LogoutResponse:
+  github_com_TebanMT_smartGou_src_modules_reference_interfaces_lambdas_get_meta_categories.ResponsePaginated:
     properties:
-      data:
-        $ref: '#/definitions/main.LogoutResponse'
-      exception:
-        type: string
-        x-nullable: "true"
-      message:
-        type: string
-      status_code:
+      limit:
+        type: integer
+      meta_categories:
+        items:
+          $ref: '#/definitions/main.MetaCategoryResponse'
+        type: array
+      offset:
+        type: integer
+      total:
         type: integer
     type: object
-  common.Response-main_RequestRecoveryPasswordResponse:
+  main.Category:
     properties:
-      data:
-        $ref: '#/definitions/main.RequestRecoveryPasswordResponse'
-      exception:
+      color:
         type: string
-        x-nullable: "true"
-      message:
+      description:
         type: string
-      status_code:
-        type: integer
-    type: object
-  common.Response-main_RequestSignUpResponse:
-    properties:
-      data:
-        $ref: '#/definitions/main.RequestSignUpResponse'
-      exception:
+      icon:
         type: string
-        x-nullable: "true"
-      message:
+      id:
         type: string
-      status_code:
-        type: integer
-    type: object
-  common.Response-main_ResetPasswordResponse:
-    properties:
-      data:
-        $ref: '#/definitions/main.ResetPasswordResponse'
-      exception:
+      meta_category_id:
         type: string
-        x-nullable: "true"
-      message:
+      name_en:
         type: string
-      status_code:
-        type: integer
-    type: object
-  common.Response-main_SignUpByEmailResponse:
-    properties:
-      data:
-        $ref: '#/definitions/main.SignUpByEmailResponse'
-      exception:
+      name_es:
         type: string
-        x-nullable: "true"
-      message:
-        type: string
-      status_code:
-        type: integer
-    type: object
-  common.Response-main_TokenResponse:
-    properties:
-      data:
-        $ref: '#/definitions/main.TokenResponse'
-      exception:
-        type: string
-        x-nullable: "true"
-      message:
-        type: string
-      status_code:
-        type: integer
-    type: object
-  common.Response-main_UserResponse:
-    properties:
-      data:
-        $ref: '#/definitions/main.UserResponse'
-      exception:
-        type: string
-        x-nullable: "true"
-      message:
-        type: string
-      status_code:
-        type: integer
-    type: object
-  common.Response-main_VerifyOTPByPhoneResponse:
-    properties:
-      data:
-        $ref: '#/definitions/main.VerifyOTPByPhoneResponse'
-      exception:
-        type: string
-        x-nullable: "true"
-      message:
-        type: string
-      status_code:
-        type: integer
     type: object
   main.ConfirmOtpRequest:
     properties:
@@ -138,6 +74,21 @@ definitions:
     properties:
       success:
         type: boolean
+    type: object
+  main.MetaCategoryResponse:
+    properties:
+      color:
+        type: string
+      description:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      nameEn:
+        type: string
+      nameEs:
+        type: string
     type: object
   main.RefreshTokenRequest:
     properties:
@@ -294,6 +245,177 @@ definitions:
       user_id:
         type: string
     type: object
+  utils.Response-any:
+    properties:
+      data: {}
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-array_main_Category:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/main.Category'
+        type: array
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-array_main_MetaCategoryResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/main.MetaCategoryResponse'
+        type: array
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-github_com_TebanMT_smartGou_src_modules_reference_interfaces_lambdas_get_categories_ResponsePaginated:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_TebanMT_smartGou_src_modules_reference_interfaces_lambdas_get_categories.ResponsePaginated'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-github_com_TebanMT_smartGou_src_modules_reference_interfaces_lambdas_get_meta_categories_ResponsePaginated:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_TebanMT_smartGou_src_modules_reference_interfaces_lambdas_get_meta_categories.ResponsePaginated'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_LogoutResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.LogoutResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_RefreshTokenResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.RefreshTokenResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_RequestRecoveryPasswordResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.RequestRecoveryPasswordResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_RequestSignUpResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.RequestSignUpResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_ResetPasswordResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.ResetPasswordResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_SignUpByEmailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.SignUpByEmailResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_TokenResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.TokenResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.UserResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  utils.Response-main_VerifyOTPByPhoneResponse:
+    properties:
+      data:
+        $ref: '#/definitions/main.VerifyOTPByPhoneResponse'
+      exception:
+        type: string
+        x-nullable: "true"
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
 host: api.smartgo.com
 info:
   contact: {}
@@ -322,23 +444,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Login with email and password
       tags:
       - security
@@ -364,19 +486,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-main_SignUpByEmailResponse'
+            $ref: '#/definitions/utils.Response-main_SignUpByEmailResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Sign up by email and password
       tags:
       - security
@@ -402,27 +524,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-main_VerifyOTPByPhoneResponse'
+            $ref: '#/definitions/utils.Response-main_VerifyOTPByPhoneResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Verify OTP from phone
       tags:
       - security
@@ -450,19 +572,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-main_RequestSignUpResponse'
+            $ref: '#/definitions/utils.Response-main_RequestSignUpResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Request sign up / login by phone
       tags:
       - security
@@ -485,23 +607,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-main_ResetPasswordResponse'
+            $ref: '#/definitions/utils.Response-main_ResetPasswordResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "401":
           description: Unauthorized
           schema:
-            type: with
+            $ref: '#/definitions/utils.Response-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Reset password
       tags:
       - security
@@ -524,19 +646,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-main_RequestRecoveryPasswordResponse'
+            $ref: '#/definitions/utils.Response-main_RequestRecoveryPasswordResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Request password recovery
       tags:
       - security
@@ -560,23 +682,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-main_LogoutResponse'
+            $ref: '#/definitions/utils.Response-main_LogoutResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Logout
       tags:
       - security
@@ -597,23 +719,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.RefreshTokenResponse'
+            $ref: '#/definitions/utils.Response-main_RefreshTokenResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Refresh access token
       tags:
       - security
@@ -639,26 +761,167 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-main_TokenResponse'
+            $ref: '#/definitions/utils.Response-main_TokenResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       summary: Login with email and password
       tags:
       - security
+  /references/categories:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        This endpoint gets the categories for a user. It can be filtered by meta category id or name like.
+        If no filters are provided, all categories will be returned.
+        If meta category id is provided, only categories related to that meta category will be returned.
+        If name like is provided, only categories related to that name will be returned.
+        If paged is true, you must provide valid limit and offset values.
+        If paged is false, all categories will be returned, ignoring limit and offset values.
+        If order by is provided, the order of the categories will be based on the order by field and order dir field will be required.
+        If order by is not provided, the categories will be returned in the order of the database.
+      parameters:
+      - description: Meta Category ID
+        in: query
+        name: meta_category_id
+        type: string
+      - description: Name Like
+        in: query
+        name: name_like
+        type: string
+      - description: Order By
+        in: query
+        name: order_by
+        type: string
+      - description: Order Dir
+        in: query
+        name: order_dir
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Paged
+        in: query
+        name: paged
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response-github_com_TebanMT_smartGou_src_modules_reference_interfaces_lambdas_get_categories_ResponsePaginated'
+        "206":
+          description: The code 206 just means the response has not been paginated
+            but the response will send with 200 code
+          schema:
+            $ref: '#/definitions/utils.Response-array_main_Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response-any'
+      security:
+      - BearerAuth: []
+      summary: Get Categories
+      tags:
+      - reference
+  /references/meta-categories:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        This endpoint gets the meta categories catalog.
+        If no filters are provided, all meta categories will be returned.
+        If name like is provided, only meta categories related to that name will be returned.
+        If paged is true, you must provide valid limit and offset values.
+        If paged is false, all meta categories will be returned, ignoring limit and offset values.
+        If order by is provided, the order of the meta categories will be based on the order by field and order dir field will be required.
+        If order by is not provided, the meta categories will be returned in the order of the database.
+      parameters:
+      - description: Name Like
+        in: query
+        name: name_like
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Paged
+        in: query
+        name: paged
+        type: boolean
+      - description: Order By
+        in: query
+        name: order_by
+        type: string
+      - description: Order Dir
+        in: query
+        name: order_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response-github_com_TebanMT_smartGou_src_modules_reference_interfaces_lambdas_get_meta_categories_ResponsePaginated'
+        "206":
+          description: The code 206 just means the response has not been paginated
+            but the response will send with 200 code
+          schema:
+            $ref: '#/definitions/utils.Response-array_main_MetaCategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response-any'
+      security:
+      - BearerAuth: []
+      summary: Get meta categories
+      tags:
+      - reference
   /users/{id-user}:
     get:
       consumes:
@@ -676,23 +939,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-main_UserResponse'
+            $ref: '#/definitions/utils.Response-main_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       security:
       - BearerAuth: []
       summary: Get user profile
@@ -715,19 +978,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/common.Response-any'
+            $ref: '#/definitions/utils.Response-any'
       security:
       - BearerAuth: []
       summary: Complete onboarding

@@ -53,11 +53,11 @@ func init() {
 // @Accept  json
 // @Produce  json
 // @Param payload body ResetPasswordRequest true "Reset password request"
-// @Success 200 {object} common.Response[ResetPasswordResponse]
-// @Failure 400 {object} common.Response[any]
-// @Failure 404 {object} common.Response[any]
-// @Failure 401 with code expired {object} common.Response[any]
-// @Failure 500 {object} common.Response[any]
+// @Success 200 {object} utils.Response[ResetPasswordResponse]
+// @Failure 400 {object} utils.Response[any]
+// @Failure 404 {object} utils.Response[any]
+// @Failure 401 {object} utils.Response[any]
+// @Failure 500 {object} utils.Response[any]
 // @Router /auth/recovery-password [patch]
 func ResetPasswordHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var resetPasswordRequest ResetPasswordRequest

@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 
+	sharedDomain "github.com/TebanMT/smartGou/src/shared/domain"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/go-playground/validator"
+	"github.com/gorilla/schema"
 )
 
 var ERROR_CODES = map[int]string{
@@ -39,15 +41,16 @@ var ERROR_CODES = map[int]string{
 	504: "GATEWAY_TIMEOUT",
 }
 
+var decoder = schema.NewDecoder()
+var validate = validator.New()
+var accessControlAllowOrigin = os.Getenv("ACCESS_CONTROL_ALLOW_ORIGIN")
+
 type Response[T any] struct {
 	StatusCode int     `json:"status_code"`
 	Message    string  `json:"message"`
 	Data       T       `json:"data"`
 	Exception  *string `json:"exception" extensions:"x-nullable=true"`
 }
-
-var validate = validator.New()
-var accessControlAllowOrigin = os.Getenv("ACCESS_CONTROL_ALLOW_ORIGIN")
 
 func ValidateRequest(request any) error {
 	err := validate.Struct(request)
@@ -58,6 +61,31 @@ func ValidateRequest(request any) error {
 				return errors.New(customMessage)
 			}
 		}
+		return err
+	}
+	return nil
+}
+
+func singleToMulti(src map[string]string) map[string][]string {
+	dst := make(map[string][]string, len(src))
+	for k, v := range src {
+		// incluso si v == "", queremos un slice
+		dst[k] = []string{v}
+	}
+	return dst
+}
+
+func ValidateQueryStringParameters[T any](request events.APIGatewayProxyRequest, params *T) error {
+	multiValueQueryStringParameters := singleToMulti(request.QueryStringParameters)
+	fmt.Println("multiValueQueryStringParameters", multiValueQueryStringParameters)
+	err := decoder.Decode(params, multiValueQueryStringParameters)
+	if err != nil {
+		fmt.Println("error Decode", err)
+		return err
+	}
+
+	if err := validate.Struct(params); err != nil {
+		fmt.Println("error Struct", err)
 		return err
 	}
 	return nil
@@ -102,4 +130,21 @@ func JsonResponse[T any](statusCode int, message string, data T, exception strin
 		},
 		Body: string(responseBody),
 	}, nil
+}
+
+func DomainErrorToHttpCode(err error) *int {
+	if err == nil {
+		return nil
+	}
+	var customError sharedDomain.CustomError
+	var httpCode int
+	if errors.As(err, &customError) {
+		switch customError.ErrorCode {
+		case sharedDomain.DataValidationCode:
+			httpCode = 400
+		case sharedDomain.UnexpectedErrors:
+			httpCode = 500
+		}
+	}
+	return &httpCode
 }

@@ -56,10 +56,10 @@ func init() {
 // @Accept  json
 // @Produce  json
 // @Param payload body SignUpByEmailRequest true "Request body"
-// @Success 200 {object} common.Response[SignUpByEmailResponse]
-// @Failure 400 {object} common.Response[any]
-// @Failure 409 {object} common.Response[any]
-// @Failure 500 {object} common.Response[any]
+// @Success 200 {object} utils.Response[SignUpByEmailResponse]
+// @Failure 400 {object} utils.Response[any]
+// @Failure 409 {object} utils.Response[any]
+// @Failure 500 {object} utils.Response[any]
 // @Router /auth [post]
 func signUpByEmailLambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
